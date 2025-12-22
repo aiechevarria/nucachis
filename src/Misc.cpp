@@ -22,13 +22,16 @@ const char* strWritePolicy[] = {"wt", "wb"};
 const char* replacementPolicyStr(PolicyReplacement policy) { return strReplacementPolicy[policy]; }
 const char* writePolicyStr(PolicyWrite policy) { return strWritePolicy[policy]; }
 
+// Debug variable
+int debugLevel = 2;
+
 /**
  * Convert string into long. It can have a multiplier G, M or K. Any other char will result in error.
  * @param  String To be converted into long
  * @param  bool True if the multiplier should be taken as base 2 (G for 2^30, M for 2^20 o K for 2^10), false if it should be taken for base 10 (G for 10^9, M for 10^6 o K for 10^3) 
  * @return Long with converted value or error. -1 for wrong value error. -2 for null pointer error.
  */
-long parseLongK(const char* string, bool base2) {
+long parseLong(const char* string, bool base2) {
     // Check for errors
     if (string == NULL) {
         return -2;
@@ -390,6 +393,18 @@ void writeToDramsysFile(FILE** f, int lastNumber, int readOrWrite, int address) 
 	} else {
 		fprintf(*f, "%d:\twrite\t0x%x\n",lastNumber + 1, address);
 	}
+}
+
+/**
+ * Count the number of lines in the file.
+ */
+int countLines(FILE* fp) {
+   int count = 0;
+
+   for (char c = getc(fp); c != EOF; c = getc(fp))
+      if (c == '\n')
+         count++;
+   return count;
 }
 
 /**

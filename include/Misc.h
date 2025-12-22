@@ -16,9 +16,6 @@
 // Simulator config
 #define MAX_CACHE_LEVELS 5
 
-// Memory config
-#define LOWER_MEM_BOUND 0x8000000
-
 // File paths for the trace and config
 static char configPath[MAX_PATH_LENGTH];
 static char tracePath[MAX_PATH_LENGTH];
@@ -39,13 +36,16 @@ typedef struct {
   //int size;
 } MemoryOperation;
 
+/* Global variables */
+extern int debugLevel;
+
 /* Misc parsing functions */
 // Policy parsing functions
 const char* replacementPolicyStr(PolicyReplacement policy);
 const char* writePolicyStr(PolicyWrite policy);
 
 // General parse functions
-long parseLongK1000(const char* string, bool base2);
+long parseLong(const char* string, bool base2);
 int parseBoolean(const char * string);
 int parseInt(const char * string);
 int parseReplacementPolicy(const char * string);
@@ -71,4 +71,5 @@ void writeToDramsysFile(FILE** f, int lastNumber, int readOrWrite, int address);
 void close_dramsys_file(FILE **f);
 
 // Misc Functions
+int countLines(FILE* fp);
 int cycle_rand();
