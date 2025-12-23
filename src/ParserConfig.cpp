@@ -17,7 +17,7 @@
 #define CPU_KEYS 2
 #define MEMORY_KEYS 5
 #define CACHE_KEYS 7
-const char* keysCpu[] =       {"address_width" "rand_seed"};
+const char* keysCpu[] =       {"address_width", "rand_seed"};
 const char* keysMemory[] =    {"size", "access_time_1","access_time_burst", "page_size", "page_base_address"};
 const char* keysCache[] =     {"line_size", "size", "associativity", "write_policy", "replacement_policy", "separated", "access_time"};
 
@@ -147,7 +147,7 @@ void checkSectionKeys(dictionary *ini, const char *section, int numberOfValidKey
  * @param ini_name the file name
  * @param cacheLevels Pointer to a cache level counter. Will return the number of cache levels in the config file.
  */
-dictionary *readConfigurationFile(char* iniName, int* cacheLevels) {
+dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
     int errors = 0;
     dictionary *ini;
 
@@ -252,12 +252,13 @@ dictionary *readConfigurationFile(char* iniName, int* cacheLevels) {
 int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     int errors = 0;
     int cacheLevels = 0;
-    // TODO INIT A DICTIONARY AND READ THE CONFIG HERE
-    dictionary* ini;
 
-    // Get the number of caches from the readConfigurationFile function
-    // TODO change this for a dictionary thing
-    sc->miscCacheLevels = cacheLevels;
+    // Read configuration file
+    dictionary *ini;
+
+    if((ini = readConfigurationFile(iniName, &sc->miscCacheLevels)) == NULL) {
+       return 1;
+    }
 
     // CPU config
     parseConfInt(ini,"cpu:address_width", &sc->cpuAddressWidth, &errors);

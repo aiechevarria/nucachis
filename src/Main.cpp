@@ -1,11 +1,21 @@
 #include "Misc.h"
 #include "GUI.h"
+#include "ParserConfig.h"
+#include "ParserTrace.h"
+#include "Simulator.h"
 
 int main(int, char**) {
     // File paths for the trace and config
     char configPath[MAX_PATH_LENGTH] = "\0";
     char tracePath[MAX_PATH_LENGTH] = "\0";
     bool filesProvided = false;
+    bool filesValidated = false;
+
+    // Config and trace
+    SimulatorConfig sc;
+    MemoryOperation* ops;
+
+    // Structures
 
     // Create a new GUI
     GUI* gui = new GUI();
@@ -33,6 +43,15 @@ int main(int, char**) {
         if (!filesProvided) {
             gui->renderPicker(configPath, tracePath, &filesProvided);
         } else {
+            // Parse the files the first time they are provided
+            if (!filesValidated) {
+                parseConfiguration(configPath, &sc);
+                parseTrace(tracePath, ops);
+                filesValidated = true;
+
+                // TODO Build the simulator and memory hierarchy
+            }
+
             // TODO check that both the config and trace are correct
             gui->renderWorkspace();
         }

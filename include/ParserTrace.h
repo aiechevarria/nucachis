@@ -2,4 +2,4 @@
 
 #include "Misc.h"
 
-int parseTraceFile(const char* traceFile, MemoryOperation* ops);
+int parseTrace(const char* traceFile, MemoryOperation* ops);
