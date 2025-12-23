@@ -8,6 +8,7 @@
 #include "imgui_impl_opengl3.h"
 #include "ImGuiFileDialog.h"
 #include "Misc.h"
+#include "Simulator.h"
 
 // Proportions and placement of each window respective to the workspace
 // Picker window
@@ -34,15 +35,15 @@ private:
     // Window sizes
     int windowHeight, windowWidth; 
 
-    void renderInstructionWindow();
-    void renderStatsWindow();
-    void renderCacheWindow();
-    void renderMemoryWindow();
+    void renderInstructionWindow(Simulator* sim);
+    void renderStatsWindow(Simulator* sim);
+    void renderCacheWindow(Simulator* sim);
+    void renderMemoryWindow(Simulator* sim);
 
 public:
     GUI();
     ~GUI();
     SDL_Window* getWindow();
     void renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool* clickedLaunch);
-    void renderWorkspace();
+    void renderWorkspace(Simulator* sim);
 };

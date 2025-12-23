@@ -8,37 +8,35 @@
 #include "PolicyReplacement.h"
 #include "PolicyWrite.h"
 
-typedef struct {
-    // CPU configs
-    int32_t cpuAddressWidth, cpuWordWidth, cpuRandSeed;
-
-    // Memory configs
-    int64_t memSize;
-    double memAccessTimeSingle, memAccessTimeBurst;
-    int64_t memPageSize, memPageBaseAddress;
-
-    // Cache configs
-    int64_t cacheSize[MAX_CACHE_LEVELS];
-    int64_t cacheLineSize[MAX_CACHE_LEVELS];
-    double cacheAccessTime[MAX_CACHE_LEVELS];
-    uint8_t cacheAssoc[MAX_CACHE_LEVELS];
-    PolicyWrite cachePolicyWrite[MAX_CACHE_LEVELS];
-    PolicyReplacement cachePolicyReplacement[MAX_CACHE_LEVELS];
-    bool cacheIsSplit[MAX_CACHE_LEVELS];
-
-    // Other misc configs
-    uint8_t miscCacheLevels;
-
-} SimulatorConfig;
-
-
 class Simulator {
 private:
+    // Private variables
     // Pointers to elements of the memory hierarchy
     Cache* caches[MAX_CACHE_LEVELS];
     MainMemory* memory;
+    MemoryElement* hierarchyStart;  // The first element of the hierarchy. All messages will be sent to it
+
+    // Instructions to execute
+    MemoryOperation* ops;
+
+    // CPU variables
+    int32_t addressWidth, wordWidth, pc;
+    uint8_t cacheLevels;
 
 public:
-    Simulator();
+    Simulator(SimulatorConfig* sc, MemoryOperation* ops);
     ~Simulator();
+
+    void singleStep();
+    void stepAll(bool stopOnBreakpoint);
+    void reset();
+
+    // Object getters
+    MemoryOperation* getOps();
+    MainMemory* getMemory();
+    Cache* getCaches();
+
+    // Other getters
+    uint32_t getNumOps();
+    uint8_t getNumCaches();
 };

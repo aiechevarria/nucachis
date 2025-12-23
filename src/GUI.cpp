@@ -1,5 +1,4 @@
 #include "GUI.h"
-#include "Misc.h"
 
 GUI::GUI () {
     // Setup SDL
@@ -42,6 +41,115 @@ GUI::~GUI () {
 
 SDL_Window* GUI::getWindow() {
     return window;
+}
+
+/**
+ * Renders the instruction window.
+ */
+void GUI::renderInstructionWindow(Simulator* sim) {
+    // Set a size and position based on the current workspace dimms
+    ImVec2 windowSize(windowWidth * INSTR_WINDOW_WIDTH, windowHeight * INSTR_WINDOW_HEIGHT);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImVec2 windowPos(0, 0);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
+    // Start the window disabling collapse
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
+    ImGui::Begin("Instruction Window", nullptr, window_flags);
+
+    // Buttons
+    if (ImGui::Button("Single Step")) {
+        sim->singleStep();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Step All")) {
+        sim->stepAll(true);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+        sim->reset();
+    }
+
+    ImGui::End();
+}
+
+
+/**
+ * Renders the cache window.
+ */
+void GUI::renderCacheWindow(Simulator* sim) {
+    // Set a size and position based on the current workspace dimms
+    ImVec2 windowSize(windowWidth * CACHE_WINDOW_WIDTH, windowHeight * CACHE_WINDOW_HEIGHT);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImVec2 windowPos((windowWidth * INSTR_WINDOW_WIDTH), 0);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
+    // Start the window disabling collapse
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
+    ImGui::Begin("Cache Hierarchy", nullptr, window_flags);
+
+    ImGui::Text("L1I");
+    if (ImGui::BeginTable("L1I", 2, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("Address");
+        ImGui::TableSetupColumn("Data");
+        ImGui::TableHeadersRow();
+
+        for (int row = 0; row < 5; ++row) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::Text("L1D");
+    if (ImGui::BeginTable("L1D", 2, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("Address");
+        ImGui::TableSetupColumn("Data");
+        ImGui::TableHeadersRow();
+
+        for (int row = 0; row < 5; ++row) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
+/**
+ * Renders the memory window.
+ */
+void GUI::renderMemoryWindow(Simulator* sim) {
+    // Set a size and position based on the current workspace dimms
+    ImVec2 windowSize(windowWidth * MEM_WINDOW_WIDTH, windowHeight * MEM_WINDOW_HEIGHT);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImVec2 windowPos(windowWidth * INSTR_WINDOW_WIDTH + windowWidth * CACHE_WINDOW_WIDTH, 0);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
+    // Start the window disabling collapse
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
+    ImGui::Begin("Main Memory", nullptr, window_flags);
+
+    if (ImGui::BeginTable("Memory table", 2, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("Address");
+        ImGui::TableSetupColumn("Data");
+        ImGui::TableHeadersRow();
+
+        for (int row = 0; row < 5; ++row) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::End();
 }
 
 /**
@@ -105,123 +213,16 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
     ImGui::End();
 }
 
-
 /**
  * Renders the main window (workspace) with all it's menus.
  * The trace and config should have previously been processed.
  */
-void GUI::renderWorkspace() {
+void GUI::renderWorkspace(Simulator* sim) {
     // Always fetch the window size prior to re rendering it
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
     // Render all different parts of the GUI
-    renderInstructionWindow();
-    renderCacheWindow();
-    renderMemoryWindow();
-}
-
-
-/**
- * Renders the instruction window.
- */
-void GUI::renderInstructionWindow() {
-    // Set a size and position based on the current workspace dimms
-    ImVec2 windowSize(windowWidth * INSTR_WINDOW_WIDTH, windowHeight * INSTR_WINDOW_HEIGHT);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-    ImVec2 windowPos(0, 0);
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-
-    // Start the window disabling collapse
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Instruction Window", nullptr, window_flags);
-
-    // Buttons
-    if (ImGui::Button("Single Step")) {
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Step All")) {
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
-    }
-
-    ImGui::End();
-}
-
-/**
- * Renders the cache window.
- */
-void GUI::renderCacheWindow() {
-    // Set a size and position based on the current workspace dimms
-    ImVec2 windowSize(windowWidth * CACHE_WINDOW_WIDTH, windowHeight * CACHE_WINDOW_HEIGHT);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-    ImVec2 windowPos((windowWidth * INSTR_WINDOW_WIDTH), 0);
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-
-    // Start the window disabling collapse
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Cache Hierarchy", nullptr, window_flags);
-
-    ImGui::Text("L1I");
-    if (ImGui::BeginTable("L1I", 2, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Data");
-        ImGui::TableHeadersRow();
-
-        for (int row = 0; row < 5; ++row) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
-        }
-
-        ImGui::EndTable();
-    }
-
-    ImGui::Text("L1D");
-    if (ImGui::BeginTable("L1D", 2, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Data");
-        ImGui::TableHeadersRow();
-
-        for (int row = 0; row < 5; ++row) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
-        }
-
-        ImGui::EndTable();
-    }
-
-    ImGui::End();
-}
-
-/**
- * Renders the memory window.
- */
-void GUI::renderMemoryWindow() {
-    // Set a size and position based on the current workspace dimms
-    ImVec2 windowSize(windowWidth * MEM_WINDOW_WIDTH, windowHeight * MEM_WINDOW_HEIGHT);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-    ImVec2 windowPos(windowWidth * INSTR_WINDOW_WIDTH + windowWidth * CACHE_WINDOW_WIDTH, 0);
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-
-    // Start the window disabling collapse
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Main Memory", nullptr, window_flags);
-
-    if (ImGui::BeginTable("Memory table", 2, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Data");
-        ImGui::TableHeadersRow();
-
-        for (int row = 0; row < 5; ++row) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
-        }
-
-        ImGui::EndTable();
-    }
-
-    ImGui::End();
+    renderInstructionWindow(sim);
+    renderCacheWindow(sim);
+    renderMemoryWindow(sim);
 }

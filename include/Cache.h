@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "Misc.h"
 #include "MemoryElement.h"
+#include "PolicyReplacement.h"
 #include "PolicyWrite.h"
 
 // A cache line
@@ -13,7 +15,6 @@ typedef struct {
     uint32_t firstAccess, lastAccess, numberAccesses;
     bool valid, dirty;
 } CacheLine;
-
 
 class Cache : public MemoryElement {
 // Caches
@@ -28,14 +29,21 @@ private:
     CacheLine** caches[NUM_CACHE_TYPES];
 
     // Properties of the cache
+    uint64_t size, lineSize; 
+    double accessTime;
+    uint32_t sets, ways;
     bool isSplit;
-    PolicyWrite writePolicy;
-    uint32_t dataSets, dataWays, instSets, instWays;
+    PolicyWrite policyWrite;
+    PolicyReplacement policyReplacement;
+    
 
 public:
-    Cache(uint32_t numSets, uint32_t numWays, PolicyWrite policy, bool split);
+    Cache(SimulatorConfig* sc, uint8_t id);
     ~Cache();
+
     bool isCacheSplit();
     CacheLine** getDataCache();
     CacheLine** getInstCache();
+
+    void flush();
 };

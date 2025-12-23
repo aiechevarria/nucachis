@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <math.h>
-
 #include "Misc.h"
-#include "PolicyReplacement.h"
-#include "PolicyWrite.h"
 
 // Valid values for true/false statements
 #define PARSER_TRUE_STRINGS 3

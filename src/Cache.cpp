@@ -1,6 +1,3 @@
-#include <stdint.h>
-#include <stdlib.h>
-
 #include "Cache.h"
 
 /**
@@ -11,49 +8,29 @@
  * @param policy The write policy used in the cache
  * @param split If the cache is split for instructions and data or not.
  */
-Cache::Cache(uint32_t numSets, uint32_t numWays, PolicyWrite policy, bool split) {
-    uint8_t numCaches;
-    writePolicy = policy;
-    isSplit = split;
+Cache::Cache(SimulatorConfig* sc, uint8_t id) {
+    size = sc->cacheSize[id];
+    lineSize = sc->cacheLineSize[id];
+    accessTime = sc->cacheAccessTime[id];
+    ways = sc->cacheSize[id];                           // Ways per set
+    isSplit = sc->cacheIsSplit[id];
+    policyWrite = sc->cachePolicyWrite[id];
+    policyReplacement = sc->cachePolicyReplacement[id];
 
-    // If the cache is split, split the ways and sets between both caches
+    // Calculate the number of sets
+    sets = size / lineSize / ways;
+
     if (isSplit) {
-        numCaches = 1;
-        dataSets = numSets / 2;
-        dataWays = numWays / 2;
-        instSets = numSets / 2;
-        instWays = numWays / 2;
-
-        // Allocate the instruction cache
-        caches[INST_CACHE] = (CacheLine**) malloc(instSets * instWays * sizeof(CacheLine));
+        // Allocate the caches
+        caches[INST_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
+        caches[DATA_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
     } else {
-        numCaches = 2;
-        dataSets = numSets;
-        dataWays = numWays;
-
         caches[INST_CACHE] = nullptr;
+        caches[DATA_CACHE] = (CacheLine**) malloc(sets * ways * sizeof(CacheLine));
     }
 
-    // Allocate memory for the data cache
-    caches[DATA_CACHE] = (CacheLine**) malloc(dataSets * dataWays * sizeof(CacheLine));
-
-    // Populate the caches
-    for (int i = 0; i < dataSets; i++) {
-        for (int j = 0; j < dataWays; j++) {
-            for (int k = 0 ; k < numCaches; k++) {
-                caches[k][i][j].content = 0;
-                caches[k][i][j].tag = 0;
-                caches[k][i][j].set = i;
-                caches[k][i][j].way = j;
-                caches[k][i][j].firstAccess = 0;
-                caches[k][i][j].lastAccess = 0;
-                caches[k][i][j].numberAccesses = 0;
-                caches[k][i][j].valid = false;
-                caches[k][i][j].dirty = false;
-            }
-        }
-    }
-
+    // Init the cache
+    flush();
 }
 
 Cache::~Cache() {
@@ -93,3 +70,32 @@ CacheLine** Cache::getDataCache() {
 CacheLine** Cache::getInstCache() {
     return caches[INST_CACHE];
 } 
+
+/**
+ * Resets the entire cache. 
+ */
+void Cache::flush() {
+    uint32_t totalSets = sets;
+    uint8_t numCaches = 1;
+
+    if (isSplit) {
+        numCaches++;
+        totalSets = sets / 2;
+    }
+
+    for (int i = 0; i < totalSets; i++) {
+        for (int j = 0; j < ways; j++) {
+            for (int k = 0 ; k < numCaches; k++) {
+                caches[k][i][j].content = 0;
+                caches[k][i][j].tag = 0;
+                caches[k][i][j].set = i;
+                caches[k][i][j].way = j;
+                caches[k][i][j].firstAccess = 0;
+                caches[k][i][j].lastAccess = 0;
+                caches[k][i][j].numberAccesses = 0;
+                caches[k][i][j].valid = false;
+                caches[k][i][j].dirty = false;
+            }
+        }
+    }
+}

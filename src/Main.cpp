@@ -16,6 +16,7 @@ int main(int, char**) {
     MemoryOperation* ops;
 
     // Structures
+    Simulator* sim;
 
     // Create a new GUI
     GUI* gui = new GUI();
@@ -49,11 +50,11 @@ int main(int, char**) {
                 parseTrace(tracePath, ops);
                 filesValidated = true;
 
-                // TODO Build the simulator and memory hierarchy
+                sim = new Simulator(&sc, ops);
             }
 
             // TODO check that both the config and trace are correct
-            gui->renderWorkspace();
+            gui->renderWorkspace(sim);
         }
 
         // Render the frame afterwards

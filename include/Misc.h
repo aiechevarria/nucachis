@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
 
 #include "PolicyReplacement.h"
 #include "PolicyWrite.h"
@@ -15,6 +19,29 @@
 
 // Simulator config
 #define MAX_CACHE_LEVELS 5
+
+// Simulator configuration. Used to pass config to the Simulator's constructor from the config file
+typedef struct {
+    // CPU configs
+    int32_t cpuAddressWidth, cpuWordWidth, cpuRandSeed;
+
+    // Memory configs
+    double memAccessTimeSingle, memAccessTimeBurst;
+    int64_t memSize, memPageSize, memPageBaseAddress;
+
+    // Cache configs
+    int64_t cacheSize[MAX_CACHE_LEVELS];
+    int64_t cacheLineSize[MAX_CACHE_LEVELS];
+    double cacheAccessTime[MAX_CACHE_LEVELS];
+    uint8_t cacheAssoc[MAX_CACHE_LEVELS];
+    bool cacheIsSplit[MAX_CACHE_LEVELS];
+    PolicyWrite cachePolicyWrite[MAX_CACHE_LEVELS];
+    PolicyReplacement cachePolicyReplacement[MAX_CACHE_LEVELS];
+    
+
+    // Other misc configs
+    uint8_t miscCacheLevels;
+} SimulatorConfig;
 
 // The type of operation that an instruction will represent
 typedef enum {
