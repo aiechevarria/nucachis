@@ -32,7 +32,7 @@ void MainMemory::setWord(uint64_t address, int value) {
  */
 void MainMemory::flush() {
     // Calculate the maximum number of array items to cover up a page
-    uint64_t pageLimit = (pageSize - pageBaseAddress) / 4;
+    uint64_t pageLimit = pageSize / 4;
 
     // Fill the memory with increasing numbers
     for (int i = 0; i < pageLimit; i++) {

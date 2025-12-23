@@ -47,7 +47,7 @@ int main(int, char**) {
             // Parse the files the first time they are provided
             if (!filesValidated) {
                 parseConfiguration(configPath, &sc);
-                parseTrace(tracePath, ops);
+                parseTrace(tracePath, ops, &sc.miscNumOperations);
                 filesValidated = true;
 
                 sim = new Simulator(&sc, ops);

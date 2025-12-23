@@ -40,6 +40,7 @@ typedef struct {
     
 
     // Other misc configs
+    uint32_t miscNumOperations;
     uint8_t miscCacheLevels;
 } SimulatorConfig;
 

@@ -158,9 +158,10 @@ int parseLine(char* line, MemoryOperation *result){
  * 
  * @param traceFile A path to the trace file to parse
  * @param ops Pointer to a memory operation. The caller should NOT allocate memory, the function will do so dynamically depending on the travetrace's length
+ * @param numOperations Pointer to an unsigned integer that represents the number of operations.
  * @return int The number of memory operations in the trace. -1 if error
  */
-int parseTrace(const char* traceFile, MemoryOperation* ops) {
+int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperations) {
    int errors = 0;
 
    // File related vars
@@ -212,6 +213,7 @@ int parseTrace(const char* traceFile, MemoryOperation* ops) {
       if (debugLevel == 1)
          fprintf(stderr,"\nTracefile was loaded correctly\n");
 
+      *numOperations = numberOfOperations;
       return 0;
    }
 

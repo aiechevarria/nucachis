@@ -20,7 +20,7 @@ private:
     MemoryOperation* ops;
 
     // CPU variables
-    int32_t addressWidth, wordWidth, pc;
+    int32_t addressWidth, wordWidth, pc, numOperations;
     uint8_t cacheLevels;
 
 public:
@@ -34,7 +34,7 @@ public:
     // Object getters
     MemoryOperation* getOps();
     MainMemory* getMemory();
-    Cache* getCaches();
+    Cache** getCaches();
 
     // Other getters
     uint32_t getNumOps();

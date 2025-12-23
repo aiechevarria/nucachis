@@ -11,6 +11,7 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
     // Store the simulator and CPU configs
     addressWidth = sc->cpuAddressWidth;
     wordWidth = sc->cpuWordWidth;
+    numOperations = sc->miscNumOperations;
     cacheLevels = sc->miscCacheLevels;
 
     // Create the memory hierarchy
@@ -74,4 +75,44 @@ void Simulator::reset() {
     for (int i = 0; i < cacheLevels; i++) {
         caches[i]->flush();
     }
+}
+
+/**
+ * Returns the entire parsed trace.
+ * @return MemoryOperation* Pointer to an array of memory operations that represent the trace.
+ */
+MemoryOperation* Simulator::getOps() {
+    return ops;
+}
+
+/**
+ * Returns the memory.
+ * @return MainMemory* Pointer to the memory.
+ */
+MainMemory* Simulator::getMemory() {
+    return memory;
+}
+
+/**
+ * Returns the caches.
+ * @return Cache** Pointer to an array of cache pointers.
+ */
+Cache** Simulator::getCaches() {
+    return caches;
+}
+
+/**
+ * Returns the number of operations in the trace.
+ * @return uint32_t number of operations.
+ */
+uint32_t Simulator::getNumOps() {
+    return numOperations;
+}
+
+/**
+ * Returns the number of caches in the hierarchy.
+ * @return uint8_t number of caches.
+ */
+uint8_t Simulator::getNumCaches() {
+    return cacheLevels;
 }

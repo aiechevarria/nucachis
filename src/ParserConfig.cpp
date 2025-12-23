@@ -241,6 +241,8 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
         fprintf(stderr,"\nTotal errors: %d\n", errors);
         return NULL;
     }
+
+    *cacheLevels = numberCaches;
     return ini;
 }
 
