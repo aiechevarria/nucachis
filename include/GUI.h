@@ -41,7 +41,7 @@ private:
     int windowHeight, windowWidth; 
 
     // Draw functions
-    void drawCacheTable(CacheLine** cache, uint32_t numLines, char* label);
+    void drawCacheTable(CacheLine* cache, uint32_t numLines, char* label);
 
     // Main section renderers
     void renderInstructionWindow(Simulator* sim);

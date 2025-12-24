@@ -163,7 +163,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
 
     /* Check that all the configuration file sections are correct.
      * No missing sections. No unknown sections. */
-    for(int i = 0; i < numberSections; i++) {
+    for (int i = 0; i < numberSections; i++) {
         const char* section = iniparser_getsecname(ini, i);
 
         // if the name of the section is cpu
@@ -187,7 +187,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
             }
 
             // Check that the string following 'cache' is a number 
-            const char *cacheNumberStr = section+5;
+            const char* cacheNumberStr = section+5;
             for (int j=0; cacheNumberStr[j] && correctNum; j++) {
                 if (!isdigit(cacheNumberStr[j])) {
                     correctNum = 0;

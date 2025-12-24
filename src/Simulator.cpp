@@ -94,11 +94,12 @@ MainMemory* Simulator::getMemory() {
 }
 
 /**
- * Returns the caches.
+ * Returns a pointer to one of the caches
+ * @param uint8_t The cache index
  * @return Cache** Pointer to an array of cache pointers.
  */
-Cache** Simulator::getCaches() {
-    return caches;
+Cache* Simulator::getCache(uint8_t cache) {
+    return caches[cache];
 }
 
 /**

@@ -12,7 +12,7 @@ Cache::Cache(SimulatorConfig* sc, uint8_t id) {
     size = sc->cacheSize[id];
     lineSize = sc->cacheLineSize[id];
     accessTime = sc->cacheAccessTime[id];
-    ways = sc->cacheSize[id];                           // Ways per set
+    ways = sc->cacheAssoc[id];                           // Ways per set
     isSplit = sc->cacheIsSplit[id];
     policyWrite = sc->cachePolicyWrite[id];
     policyReplacement = sc->cachePolicyReplacement[id];
@@ -22,19 +22,17 @@ Cache::Cache(SimulatorConfig* sc, uint8_t id) {
 
     if (isSplit) {
         // Allocate the caches
-        caches[INST_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
-        caches[DATA_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
+        caches[DATA_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
+        caches[INST_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
 
         // TODO allocate space for lineSize / 4 words in content
     } else {
+        caches[DATA_CACHE] = (CacheLine*) malloc(sets * ways * sizeof(CacheLine));
         caches[INST_CACHE] = nullptr;
-        caches[DATA_CACHE] = (CacheLine**) malloc(sets * ways * sizeof(CacheLine));
+        
 
         // TODO allocate space for lineSize / 4 words in content
     }
-
-    // Init the cache
-    flush();
 }
 
 Cache::~Cache() {
@@ -62,7 +60,7 @@ bool Cache::isCacheSplit() {
  * 
  * @return CacheLine** Pointer to the data cache
  */
-CacheLine** Cache::getDataCache() {
+CacheLine* Cache::getDataCache() {
     return caches[DATA_CACHE];
 } 
 
@@ -71,7 +69,7 @@ CacheLine** Cache::getDataCache() {
  * 
  * @return CacheLine** Pointer to the instruction cache or nullptr if it does not exist.
  */
-CacheLine** Cache::getInstCache() {
+CacheLine* Cache::getInstCache() {
     return caches[INST_CACHE];
 } 
 
@@ -99,15 +97,15 @@ void Cache::flush() {
     for (int i = 0; i < totalSets; i++) {
         for (int j = 0; j < ways; j++) {
             for (int k = 0 ; k < numCaches; k++) {
-                caches[k][i][j].content = 0;
-                caches[k][i][j].tag = 0;
-                caches[k][i][j].set = i;
-                caches[k][i][j].way = j;
-                caches[k][i][j].firstAccess = 0;
-                caches[k][i][j].lastAccess = 0;
-                caches[k][i][j].numberAccesses = 0;
-                caches[k][i][j].valid = false;
-                caches[k][i][j].dirty = false;
+                //caches[k][i][j].content = 0;
+                caches[k][i * ways + j].tag = 0;
+                caches[k][i * ways + j].set = i;
+                caches[k][i * ways + j].way = j;
+                caches[k][i * ways + j].firstAccess = 0;
+                caches[k][i * ways + j].lastAccess = 0;
+                caches[k][i * ways + j].numberAccesses = 0;
+                caches[k][i * ways + j].valid = false;
+                caches[k][i * ways + j].dirty = false;
             }
         }
     }

@@ -26,7 +26,7 @@ typedef enum {
 
 private:
     // The actual cache structures
-    CacheLine** caches[NUM_CACHE_TYPES];
+    CacheLine* caches[NUM_CACHE_TYPES];
 
     // Properties of the cache
     uint64_t size, lineSize; 
@@ -42,8 +42,8 @@ public:
     ~Cache();
 
     bool isCacheSplit();
-    CacheLine** getDataCache();
-    CacheLine** getInstCache();
+    CacheLine* getDataCache();
+    CacheLine* getInstCache();
     uint32_t getCacheLines();
 
     void flush();

@@ -59,14 +59,6 @@ int main(int argc, char** argv) {
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         SDL_Window* window = gui->getWindow();
 
-        // Load icons
-        io.Fonts->AddFontDefault();
-        static const ImWchar icons_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
-        ImFontConfig icons_config;
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
-        io.Fonts->AddFontFromFileTTF("assets/MaterialIcons-Regular.ttf", 16.0f, &icons_config, icons_ranges);
-
         // Main loop
         bool running = true;
 

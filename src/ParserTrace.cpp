@@ -206,6 +206,8 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
       // Parse the line and store it in the pointer to the instruction
       if (parseLine(currentLine, &ops[numberOfOperations]) == -1) {
          errors++;
+      } else {
+         numberOfOperations++;
       }
    }
 

@@ -34,7 +34,7 @@ public:
     // Object getters
     MemoryOperation* getOps();
     MainMemory* getMemory();
-    Cache** getCaches();
+    Cache* getCache(uint8_t cache);
 
     // Other getters
     uint32_t getNumOps();

@@ -45,11 +45,11 @@ SDL_Window* GUI::getWindow() {
     return window;
 }
 
-void GUI::drawCacheTable(CacheLine** cache, uint32_t numLines, char* label) {
+void GUI::drawCacheTable(CacheLine* cache, uint32_t numLines, char* label) {
     ImGui::Text("%s\n", label);
 
     // Display the instruction cache 
-    if (ImGui::BeginTable(label, 9, ImGuiTableFlags_Borders)) {
+    if (ImGui::BeginTable(label, 9, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
         ImGui::TableSetupColumn("L");
         ImGui::TableSetupColumn("S");
         ImGui::TableSetupColumn("W");
@@ -64,14 +64,14 @@ void GUI::drawCacheTable(CacheLine** cache, uint32_t numLines, char* label) {
         for (int i = 0; i < numLines; i++) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0); ImGui::Text("%d", i);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->set);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->way);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->dirty);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->valid);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->firstAccess);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->lastAccess);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->numberAccesses);
-            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", 0);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%u", cache[i].set);
+            ImGui::TableSetColumnIndex(2); ImGui::Text("%u", cache[i].way);
+            ImGui::TableSetColumnIndex(3); ImGui::Text("%u", cache[i].dirty);
+            ImGui::TableSetColumnIndex(4); ImGui::Text("%u", cache[i].valid);
+            ImGui::TableSetColumnIndex(5); ImGui::Text("%u", cache[i].firstAccess);
+            ImGui::TableSetColumnIndex(6); ImGui::Text("%u", cache[i].lastAccess);
+            ImGui::TableSetColumnIndex(7); ImGui::Text("%u", cache[i].numberAccesses);
+            ImGui::TableSetColumnIndex(8); ImGui::Text("%u %u %u %u", 0, 0,0,0);
         }
 
         ImGui::EndTable();
@@ -108,14 +108,11 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::End();
 }
 
-
 /**
  * Renders the cache window.
  * @param sim Pointer to the simulator
  */
 void GUI::renderCacheWindow(Simulator* sim) {
-    // Get the caches
-    Cache* caches = *sim->getCaches();
     char label[5] = "\0";               // Label for the columns
 
     // Set a size and position based on the current workspace dimms
@@ -124,14 +121,17 @@ void GUI::renderCacheWindow(Simulator* sim) {
     ImVec2 windowPos((windowWidth * INSTR_WINDOW_WIDTH), 0);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-
-    if (ImGui::Begin("Cache Hierarchy", nullptr, window_flags)) {
+    // Create the cache window
+    if (ImGui::Begin("Cache Hierarchy", nullptr, ImGuiWindowFlags_NoCollapse)) {
+        // Get the number of caches
         uint8_t numCaches = sim->getNumCaches();
+
+        // Create a table with as many columns as caches
         ImGuiTableFlags table_flags = ImGuiTableFlags_ScrollX | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable;
-        
-        // Create a table to house multiple caches
-        if (ImGui::BeginTable("HierarchyTable", numCaches, table_flags)) {
+        if (ImGui::BeginTable("HierarchyTable", numCaches, table_flags, ImVec2(0.0f, 0.0f))) {
+            // Store the table height for later
+            float tableHeight = ImGui::GetItemRectSize().y;
+
             // Setup as many columns as caches with a label and a min width
             for (int i = 0; i < numCaches; i++) {
                 char label[32];
@@ -143,7 +143,10 @@ void GUI::renderCacheWindow(Simulator* sim) {
             // Since this is a table, make a single row that has everything
             ImGui::TableNextRow();
 
+            // Create a table for each cache and draw it's contents
             for (int i = 0; i < numCaches; i++) {
+                Cache* cache = sim->getCache(i);
+
                 ImGui::TableSetColumnIndex(i);
 
                 // Generate a unique ID for the child window
@@ -151,15 +154,15 @@ void GUI::renderCacheWindow(Simulator* sim) {
                 sprintf(childLabel, "Child_L%d", i);
 
                 // ImVec2(0, 0) tells it to fill the width and height of the cell.
-                ImGui::BeginChild(childLabel, ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+                ImGui::BeginChild(childLabel, ImVec2(0.0f, tableHeight - ImGui::GetStyle().ScrollbarSize), true);
 
                 // Draw the content of the caches inside of the talbe
-                if (caches[i].isCacheSplit()) {
-                    drawCacheTable(caches[i].getInstCache(), caches[i].getCacheLines() / 2, (char*) "Instructions");
+                if (cache->isCacheSplit()) {
+                    drawCacheTable(cache->getInstCache(), cache->getCacheLines() / 2, (char*) "Instructions");
                     ImGui::Separator(); // Add a visual separator between split caches
-                    drawCacheTable(caches[i].getDataCache(), caches[i].getCacheLines() / 2, (char*) "Data");
+                    drawCacheTable(cache->getDataCache(), cache->getCacheLines() / 2, (char*) "Data");
                 } else {
-                    drawCacheTable(caches[i].getDataCache(), caches[i].getCacheLines(), (char*) "Data");
+                    drawCacheTable(cache->getDataCache(), cache->getCacheLines(), (char*) "Data");
                 }
 
                 ImGui::EndChild();
@@ -168,6 +171,7 @@ void GUI::renderCacheWindow(Simulator* sim) {
             ImGui::EndTable();
         }
     }
+
     ImGui::End();
 }
 
