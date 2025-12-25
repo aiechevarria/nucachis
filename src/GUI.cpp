@@ -1,5 +1,14 @@
 #include "GUI.h"
 
+ImVec4 colorVec[NUM_COLOR_NAMES] = {
+    ImVec4(1.0f, 0.0f, 0.0f, 1.0f), // COLOR_RED
+    ImVec4(1.0f, 0.5f, 0.0f, 1.0f), // COLOR_ORANGE
+    ImVec4(1.0f, 1.0f, 0.0f, 1.0f), // COLOR_YELLOW
+    ImVec4(0.0f, 1.0f, 0.0f, 1.0f), // COLOR_GREEN
+    ImVec4(0.0f, 0.0f, 1.0f, 1.0f), // COLOR_BLUE
+    ImVec4(0.5f, 0.5f, 0.5f, 1.0f)  // COLOR_GREY
+};
+
 GUI::GUI () {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
@@ -43,7 +52,7 @@ SDL_Window* GUI::getWindow() {
     return window;
 }
 
-void GUI::drawCacheTable(CacheLine* cache, uint32_t numLines, char* label) {
+void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numLines, char* label) {
     ImGui::Text("%s\n", label);
 
     // Display the instruction cache 
@@ -69,7 +78,12 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t numLines, char* label) {
             ImGui::TableSetColumnIndex(5); ImGui::Text("%u", cache[i].firstAccess);
             ImGui::TableSetColumnIndex(6); ImGui::Text("%u", cache[i].lastAccess);
             ImGui::TableSetColumnIndex(7); ImGui::Text("%u", cache[i].numberAccesses);
-            ImGui::TableSetColumnIndex(8); ImGui::Text("%u %u %u %u", 0, 0,0,0);
+            ImGui::TableSetColumnIndex(8);
+
+            for (int j = 0; j < lineSizeWords; j++) {
+                ImGui::Text("%lu ", cache[i].content[j]);
+                ImGui::SameLine();
+            }
         }
 
         ImGui::EndTable();
@@ -83,6 +97,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     // Get the operations
     MemoryOperation* ops = sim->getOps();
     uint32_t numOps = sim->getNumOps();
+    uint32_t cycle = sim->getCurrentCycle();
 
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * INSTR_WINDOW_WIDTH, windowHeight * INSTR_WINDOW_HEIGHT);
@@ -110,7 +125,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::Separator();
 
     // Current cycle
-    ImGui::Text("Current cycle: %u", sim->getCurrentCycle());
+    ImGui::Text("Current cycle: %u", cycle);
 
     ImGui::Separator();
 
@@ -128,6 +143,12 @@ void GUI::renderInstructionWindow(Simulator* sim) {
             char checkboxId[6];
             sprintf(checkboxId, "##C%d", i);
 
+            // Highlight the current operation
+            if (cycle != 0 && cycle == i) {
+                ImU32 rowColor = ImGui::GetColorU32(colorVec[COLOR_BLUE]);
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, rowColor);
+            }
+
             // Draw the table
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0); ImGui::Checkbox(checkboxId, &ops[i].hasBreakPoint);
@@ -139,6 +160,28 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 
         ImGui::EndTable();
     }
+
+    ImGui::End();
+}
+
+/**
+ * Renders the stats window.
+ */
+void GUI::renderStatsWindow(Simulator* sim) {
+    ImVec2 windowSize(windowWidth * STATS_WINDOW_WIDTH, windowHeight * STATS_WINDOW_HEIGHT);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImVec2 windowPos(0, windowHeight * INSTR_WINDOW_HEIGHT);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
+    // Start the window disabling collapse
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
+    ImGui::Begin("Statistics", nullptr, window_flags);
+
+    ImGui::Text("CPU:");
+    ImGui::Text("\tTODO");
+
+    ImGui::Text("Memory:");
+    ImGui::Text("\tTODO");
 
     ImGui::End();
 }
@@ -193,11 +236,11 @@ void GUI::renderCacheWindow(Simulator* sim) {
 
                 // Draw the content of the caches inside of the talbe
                 if (cache->isCacheSplit()) {
-                    drawCacheTable(cache->getInstCache(), cache->getCacheLines() / 2, (char*) "Instructions");
+                    drawCacheTable(cache->getCache(true), cache->getLineSizeWords(),cache->getLines() / 2, (char*) "Instructions");
                     ImGui::Separator(); // Visual separator line
-                    drawCacheTable(cache->getDataCache(), cache->getCacheLines() / 2, (char*) "Data");
+                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines() / 2, (char*) "Data");
                 } else {
-                    drawCacheTable(cache->getDataCache(), cache->getCacheLines(), (char*) "Data");
+                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
                 }
 
                 ImGui::EndChild();
@@ -315,6 +358,7 @@ void GUI::renderWorkspace(Simulator* sim) {
 
     // Render all different parts of the GUI
     renderInstructionWindow(sim);
+    renderStatsWindow(sim);
     renderCacheWindow(sim);
     renderMemoryWindow(sim);
 }

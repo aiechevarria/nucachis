@@ -30,5 +30,7 @@ public:
     uint64_t getPageSize();
     uint64_t getPageBaseAddress();
 
+    virtual void processRequest(MemoryOperation* op, MemoryReply* rep) override;
+
     void flush();
 };

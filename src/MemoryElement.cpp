@@ -18,7 +18,3 @@ void MemoryElement::setNext(MemoryElement* nextElement) {
 void MemoryElement::setPrev(MemoryElement* prevElement) {
     prev = prevElement;
 }
-
-void MemoryElement::processRequest() {
-    // TODO
-}

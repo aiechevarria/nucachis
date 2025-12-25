@@ -45,9 +45,6 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
         // If there is no cache, wire everything straight to the CPU
         hierarchyStart = memory;
     }
-
-    // Init everything to the default
-    reset();
 }
 
 Simulator::~Simulator() {
@@ -57,11 +54,34 @@ Simulator::~Simulator() {
  * Runs a single instruction. 
  */
 void Simulator::singleStep() {
+    MemoryReply rep;
 
+    // Set up the reply
+    rep.totalTime = 0.0;
+    rep.data = (uint64_t*) malloc(sizeof(uint64_t));
+    rep.numWords = 1;
+
+    // Display information on console
+    printf("\n\n------ Cycle %d ------\n\n", cycle);
+    if (operations[cycle].operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle].address);
+    if (operations[cycle].operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle].data, operations[cycle].address);
+
+    // Throw the request to the first level of the memory hierarchy
+    hierarchyStart->processRequest(&operations[cycle], &rep);
+
+    // Unpack the reply and free the data
+    if (operations[cycle].operation == LOAD)  printf("CPU: Finished load, got %lu in %.2f\n", rep.data[0], rep.totalTime);
+    if (operations[cycle].operation == STORE)  printf("CPU: Finished store in %.2f\n", rep.totalTime);
+    totalAccessTime = rep.totalTime;
+    free(rep.data);
+
+    // Enter a new cycle
+    cycle++;
 }
 
 /**
- * Runs all instructions until a breakpoint is reached or the trace ends.
+ * Runs all instructions.
+ * @param stopOnBreakpoint If true, it will stop on the first breakpoint it reaches, if false, it will run until the trace ends.
  */
 void Simulator::stepAll(bool stopOnBreakpoint) {
 
@@ -73,6 +93,9 @@ void Simulator::stepAll(bool stopOnBreakpoint) {
 void Simulator::reset() {
     // Reset the cycles
     cycle = 0;
+
+    // Reset the stats
+    totalAccessTime = 0.0;
 
     // Init the mem hierarchy
     memory->flush();

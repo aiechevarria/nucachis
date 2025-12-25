@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Misc.h"
+
 class MemoryElement {
 private:
     // Pointers to the next and previous elements in the memory hierarchy
@@ -17,5 +19,5 @@ public:
     void setPrev(MemoryElement* prevElement);
 
     // Process request from another level
-    void processRequest();
+    virtual void processRequest(MemoryOperation* op, MemoryReply* rep) = 0;
 };

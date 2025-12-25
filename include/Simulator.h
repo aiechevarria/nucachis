@@ -24,6 +24,9 @@ private:
     uint32_t cycle, numOperations;
     uint8_t cacheLevels;
 
+    // Stats
+    double totalAccessTime;
+
 public:
     Simulator(SimulatorConfig* sc, MemoryOperation* ops);
     ~Simulator();

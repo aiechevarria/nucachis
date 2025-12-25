@@ -29,9 +29,24 @@
 #define CACHE_WINDOW_HEIGHT 1
 #define MIN_CACHE_TABLE_WIDTH 300.0f
 
+// Stats window
+#define STATS_WINDOW_WIDTH  INSTR_WINDOW_WIDTH
+#define STATS_WINDOW_HEIGHT (1.0 - INSTR_WINDOW_HEIGHT) 
+
 // Error window
 #define ERROR_WINDOW_WIDTH  0.40
 #define ERROR_WINDOW_HEIGHT 0.20
+
+// GUI Colors
+typedef enum {
+    COLOR_RED,
+    COLOR_ORANGE,
+    COLOR_YELLOW,
+    COLOR_GREEN,
+    COLOR_BLUE,
+    COLOR_GREY,
+    NUM_COLOR_NAMES    
+} ColorNames;
 
 class GUI {
 private:
@@ -42,7 +57,7 @@ private:
     int windowHeight, windowWidth; 
 
     // Draw functions
-    void drawCacheTable(CacheLine* cache, uint32_t numLines, char* label);
+    void drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numLines, char* label);
 
     // Main section renderers
     void renderInstructionWindow(Simulator* sim);

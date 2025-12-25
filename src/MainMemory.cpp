@@ -1,4 +1,5 @@
 #include "MainMemory.h"
+#include "Misc.h"
 
 MainMemory::MainMemory(SimulatorConfig* sc) {
     // Address size (This could be moved to the MemoryElement constructor in the future, perhaps)
@@ -17,6 +18,9 @@ MainMemory::MainMemory(SimulatorConfig* sc) {
     // Allocate memory for the memory
     // The size is given in bytes, but the data is only addressable/displayed in words
     memory = (MemoryLine*) malloc(sizeof(MemoryLine) * (size / wordWidth));
+
+    // Init all execution dependent stats
+    flush();
 }
 
 MainMemory::~MainMemory() {
@@ -59,4 +63,12 @@ void MainMemory::flush() {
         memory[i].address = i * wordWidth + pageBaseAddress;
         memory[i].content = i;
     }
+}
+
+/**
+ * Processes a memory operation that was sent from the upper level 
+ * @param op The memory request that was made. 
+ */
+void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
+
 }
