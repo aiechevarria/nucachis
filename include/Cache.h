@@ -31,13 +31,24 @@ private:
     // Properties of the cache
     uint64_t size, lineSize, lineSizeWords; 
     double accessTime;
-    uint32_t sets, ways, lines;
+    uint32_t sets, ways, lines, wordWidth;
     bool isSplit;
+    uint8_t id;
     PolicyWrite policyWrite;
     PolicyReplacement policyReplacement;
 
     // Stats
     uint32_t accesses, hits, misses;
+
+    // Private functions
+    uint64_t getMask(uint64_t numBits);
+    uint64_t getTag(uint64_t address);
+    uint32_t getSet(uint64_t address);
+    uint64_t getOffset(uint64_t address);
+    uint64_t getAddressFromTagAndSet(uint64_t tag, uint32_t set);
+    uint32_t findReplacement(CacheLine* cache, uint64_t address);
+    double fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isData);
+    int32_t searchAddress(CacheLine* cache, uint64_t address);
 
 public:
     Cache(SimulatorConfig* sc, uint8_t id);

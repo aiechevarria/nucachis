@@ -48,6 +48,10 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
 }
 
 Simulator::~Simulator() {
+    // Free the data in the memory operations loaded from the trace
+    for (int i = 0; i < numOperations; i++) {
+        free(operations[i].data);
+    }
 }
 
 /**
@@ -59,12 +63,11 @@ void Simulator::singleStep() {
     // Set up the reply
     rep.totalTime = 0.0;
     rep.data = (uint64_t*) malloc(sizeof(uint64_t));
-    rep.numWords = 1;
 
     // Display information on console
     printf("\n\n------ Cycle %d ------\n\n", cycle);
     if (operations[cycle].operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle].address);
-    if (operations[cycle].operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle].data, operations[cycle].address);
+    if (operations[cycle].operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle].data[0], operations[cycle].address);
 
     // Throw the request to the first level of the memory hierarchy
     hierarchyStart->processRequest(&operations[cycle], &rep);

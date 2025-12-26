@@ -8,6 +8,8 @@
 #include "PolicyReplacement.h"
 #include "PolicyWrite.h"
 
+static uint32_t cycle;
+
 class Simulator {
 private:
     // Private variables
@@ -21,7 +23,7 @@ private:
 
     // CPU variables
     int32_t addressWidth, wordWidth;        // In Bytes
-    uint32_t cycle, numOperations;
+    uint32_t numOperations;
     uint8_t cacheLevels;
 
     // Stats

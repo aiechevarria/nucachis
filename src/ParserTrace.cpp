@@ -124,7 +124,9 @@ int parseLine(char* line, MemoryOperation* result){
                return -1;
             }
 
-            result->data = atol(pch);
+            // Allocate data for the result
+            result->data = (uint64_t*) malloc(sizeof(uint64_t));
+            result->data[0] = atol(pch);
 
             if (result->operation == LOAD) {
                fprintf(stderr, "You cannot use the data field in load (L) operations.");

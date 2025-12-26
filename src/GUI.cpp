@@ -155,7 +155,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
             ImGui::TableSetColumnIndex(1); ImGui::Text("%c", ops[i].operation == LOAD ? 'L' : 'S');
             ImGui::TableSetColumnIndex(2); ImGui::Text("%c", ops[i].isData ? 'D' : 'I');
             ImGui::TableSetColumnIndex(3); ImGui::Text("0x%lX", ops[i].address);
-            ImGui::TableSetColumnIndex(4); ops[i].operation == STORE ? ImGui::Text("%lu", ops[i].data) : ImGui::Text("-");
+            ImGui::TableSetColumnIndex(4); ops[i].operation == STORE ? ImGui::Text("%lu", ops[i].data[0]) : ImGui::Text("-");
         }
 
         ImGui::EndTable();

@@ -3,7 +3,7 @@
 #include "Misc.h"
 
 class MemoryElement {
-private:
+protected:
     // Pointers to the next and previous elements in the memory hierarchy
     MemoryElement* next;
     MemoryElement* prev;
