@@ -3,6 +3,7 @@
  * @brief Parses the trace (.vca) file.
  */
 
+#include <cstddef>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,7 @@ int parseLine(char* line, MemoryOperation* result){
    char message[1000];
    int fieldId = 0;        // Number of the field. All traces should have at least 2 fields
    char* pch;
+   bool dataHasBeenSet = false;
 
    if (debugLevel == 2)
       fprintf(stderr,"Parsing trace line %s\n", line);
@@ -125,6 +127,8 @@ int parseLine(char* line, MemoryOperation* result){
                return -1;
             }
 
+            dataHasBeenSet = true;
+
             // Allocate data for the result
             result->data = (uint64_t*) malloc(sizeof(uint64_t));
             result->data[0] = atol(pch);
@@ -143,8 +147,17 @@ int parseLine(char* line, MemoryOperation* result){
 
       // Get the next field
       fieldId++;
-      pch = strtok (NULL, " ");
+      pch = strtok(NULL, " ");
    }
+
+   // If no data has been given to a store, assign a 0 to it
+   if (result->operation == STORE && !dataHasBeenSet) {
+      result->data = (uint64_t*) malloc(sizeof(uint64_t));
+      result->data[0] = 0;
+   }
+   
+   // Hardwire the accesses (Both load and store) to be 1 word at all times
+   result->numWords = 1;
 
    // Check the minimum required fields are present
    if (fieldId < 3) {

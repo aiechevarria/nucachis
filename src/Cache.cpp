@@ -153,11 +153,11 @@ void Cache::flush() {
 
             // Init the rest of properties
             caches[i][j].tag = 0;
-            caches[i][j].set = i;
-            caches[i][j].way = j;
-            caches[i][j].firstAccess = 0;
-            caches[i][j].lastAccess = 0;
-            caches[i][j].numberAccesses = 0;
+            caches[i][j].set = (uint32_t) j / ways;
+            caches[i][j].way = j % ways;
+            caches[i][j].firstAccess = -1;
+            caches[i][j].lastAccess = -1;
+            caches[i][j].numberAccesses = -1;
             caches[i][j].valid = false;
             caches[i][j].dirty = false;
         }
@@ -211,7 +211,7 @@ uint32_t Cache::getSet(uint64_t address) {
     uint32_t setBits = log2(sets);
 
     // And the address with a mask of setBits bits to remove the tag
-    return address & getMask(setBits);
+    return addrWithoutOffset & getMask(setBits);
 }
 
 /**
@@ -219,7 +219,7 @@ uint32_t Cache::getSet(uint64_t address) {
  * @param address The address to calculate the offset
  * @return uint32_t The offset.
  */
-uint64_t Cache::getOffset(uint64_t address) {
+uint32_t Cache::getOffset(uint64_t address) {
     // Remove the bits that are not offset
     return address & getMask(log2(lineSize));
 }
@@ -257,6 +257,44 @@ int32_t Cache::searchAddress(CacheLine* cache, uint64_t address) {
     // It it was not found, return -1
     return -1; 
 }
+
+/**
+ * Extracts the specified number of words from the given cache line and puts them into the reply.
+ * @param line The line 
+ * @param op The operation with the data
+ * @param rep The reply in which the data will be put
+ */
+void Cache::extractWordsFromLine(CacheLine line, MemoryOperation* op, MemoryReply* rep) {
+    // Get the base index from which to extract the first word
+    uint32_t baseIndex = getOffset(op->address) / (wordWidth / 8);
+
+    assert (baseIndex + op->numWords <= lineSizeWords && "Multi-word requests that span two or more cache lines are unsupported");
+
+    // Move all the requested words to the reply
+    for (int i = 0; i < op->numWords; i++) {
+        rep->data[i] = line.content[i + baseIndex];
+    }
+}
+
+/**
+ * Inserts the specified number of words from the given cache line. 
+ * @param line The line 
+ * @param op The operation with the data
+ * @param rep The reply in which the data will be put
+ */
+void Cache::insertWordsInLine(CacheLine line, MemoryOperation* op) {
+    // Get the base index from which to extract the first word
+    uint32_t baseIndex = getOffset(op->address) / (wordWidth / 8);
+
+    assert (baseIndex + op->numWords <= lineSizeWords && "Multi-word requests that span two or more cache lines are unsupported");
+
+    // Move all the requested words to the reply
+    for (int i = 0; i < op->numWords; i++) {
+        line.content[i + baseIndex] = op->data[i];
+    }
+}
+
+
 
 /**
  * Selects the most suitable line to be replaced on the cache for a given address. 
@@ -402,6 +440,8 @@ double Cache::fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isDat
  */
 void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
     CacheLine* cache;
+
+   if (debugLevel >= 1) printf("Debug: L%d, Address=%lu, Tag=%lu, Set=%u, Offset=%u\n", id + 1, op->address, getTag(op->address), getSet(op->address), getOffset(op->address));
     
     // Update the stats with the access time of this cache
     rep->totalTime += accessTime;
@@ -423,10 +463,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             printf("L%u%c: Hit in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
 
             // Reply with that data
-            for (int i = 0; i < op->numWords; i++) {
-                uint32_t index = getOffset(op->address) / (wordWidth / 8) + i;
-                rep->data[i] = cache[line].content[index];
-            }
+            extractWordsFromLine(cache[line], op, rep);
         } else {
             // If it is not present
             printf("L%u%c: Miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
@@ -439,18 +476,26 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             assert(line != -1 && "The line should be found after being brought"); 
 
             // Reply with that data
-            rep->data[0] = cache[line].content[getOffset(op->address)];
+            extractWordsFromLine(cache[line], op, rep);
         }
     } else if (op->operation == STORE) {
         // For stores
         // If the cache is WT
         if (policyWrite == WRITE_THROUGH) {
-            // Send it to the lower level and be done with it
+            // If the data is present in the cache, store it but do not flag it as dirty
+            if (line != -1) {
+                printf("L%u%c: Write-Through, updating already present data\n", id + 1, op->isData ? 'D' : 'I');
+                insertWordsInLine(cache[line], op);
+            }
+
             printf("L%u%c: Write-Through, sending store to lower level\n", id + 1, op->isData ? 'D' : 'I');
 
+            // Send it to the lower level (Reusing the reply, as no data will be stored on it)
+            next->processRequest(op, rep);
         } else if (policyWrite == WRITE_BACK) {
+            // If the cache is WB
             // If the line is not present
-            if (line != -1) {
+            if (line == -1) {
                 // Query the lower level (Write-allocate)
                 printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
                 rep->totalTime += fetchFromLowerLevel(cache, op->address, op->data);
@@ -463,10 +508,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             printf("L%u%c: Storing in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
 
             // Store the data
-            for (int i = 0; i < op->numWords; i++) {
-                uint32_t index = getOffset(op->address) / (wordWidth / 8) + i;
-                rep->data[i] = cache[line].content[index];
-            }
+            insertWordsInLine(cache[line], op);
             
             // Flag the line as dirty
             cache[line].dirty = true;

@@ -75,9 +75,9 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numL
             ImGui::TableSetColumnIndex(2); ImGui::Text("%u", cache[i].way);
             ImGui::TableSetColumnIndex(3); ImGui::Text("%u", cache[i].dirty);
             ImGui::TableSetColumnIndex(4); ImGui::Text("%u", cache[i].valid);
-            ImGui::TableSetColumnIndex(5); ImGui::Text("%u", cache[i].firstAccess);
-            ImGui::TableSetColumnIndex(6); ImGui::Text("%u", cache[i].lastAccess);
-            ImGui::TableSetColumnIndex(7); ImGui::Text("%u", cache[i].numberAccesses);
+            ImGui::TableSetColumnIndex(5); (cache[i].firstAccess == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].firstAccess);
+            ImGui::TableSetColumnIndex(6); (cache[i].lastAccess == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].lastAccess);
+            ImGui::TableSetColumnIndex(7); (cache[i].numberAccesses == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].numberAccesses);
             ImGui::TableSetColumnIndex(8);
 
             for (int j = 0; j < lineSizeWords; j++) {
@@ -236,9 +236,9 @@ void GUI::renderCacheWindow(Simulator* sim) {
 
                 // Draw the content of the caches inside of the talbe
                 if (cache->isCacheSplit()) {
-                    drawCacheTable(cache->getCache(true), cache->getLineSizeWords(),cache->getLines() / 2, (char*) "Instructions");
+                    drawCacheTable(cache->getCache(true), cache->getLineSizeWords(),cache->getLines(), (char*) "Instructions");
                     ImGui::Separator(); // Visual separator line
-                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines() / 2, (char*) "Data");
+                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
                 } else {
                     drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
                 }

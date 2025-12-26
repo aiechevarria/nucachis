@@ -16,7 +16,7 @@ MainMemory::MainMemory(SimulatorConfig* sc) {
 
     // Allocate memory for the memory
     // The size is given in bytes, but the data is only addressable/displayed in words
-    memory = (MemoryLine*) malloc(sizeof(MemoryLine) * (size / wordWidth));
+    memory = (MemoryLine*) malloc(sizeof(MemoryLine) * (pageSize / wordWidth));
 
     // Init all execution dependent stats
     flush();
@@ -73,12 +73,12 @@ void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
     assert(op->address >= pageBaseAddress && "The requested address is outside of the simulated memory area");
 
     // Calculate the index in which the address is located
-    uint64_t baseIndex = (op->address - pageBaseAddress);
+    uint64_t baseIndex = (op->address - pageBaseAddress) / wordWidth;
 
     //If it is a load, put the data in the reply
     if (op->operation == LOAD) {
         for (int i = 0; i < op->numWords; i++) {
-            op->data[i] = memory[i + baseIndex].content;
+            rep->data[i] = memory[i + baseIndex].content;
         }
     } else if (op->operation == STORE) {
         for (int i = 0; i < op->numWords; i++) {
