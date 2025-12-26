@@ -2,13 +2,12 @@
 #include "Misc.h"
 
 MainMemory::MainMemory(SimulatorConfig* sc) {
-    // Address size (This could be moved to the MemoryElement constructor in the future, perhaps)
-    wordWidth = sc->cpuWordWidth / 4;
-    addressWidth = sc->cpuAddressWidth / 4;
+    wordWidth = sc->cpuWordWidth / 8;               // In Bytes
+    addressWidth = sc->cpuAddressWidth / 8;         // In Bytes
 
     // Memory geometry
-    size = sc->memSize;
-    pageSize = sc->memPageSize;
+    size = sc->memSize;                             // In Bytes
+    pageSize = sc->memPageSize;                     // In Bytes
     pageBaseAddress = sc->memPageBaseAddress;
 
     // Memory timing
@@ -70,5 +69,27 @@ void MainMemory::flush() {
  * @param op The memory request that was made. 
  */
 void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
+    // Fail if the provided address is wrong
+    assert(op->address >= pageBaseAddress && "The requested address is outside of the simulated memory area");
 
+    // Calculate the index in which the address is located
+    uint64_t baseIndex = (op->address - pageBaseAddress);
+
+    //If it is a load, put the data in the reply
+    if (op->operation == LOAD) {
+        for (int i = 0; i < op->numWords; i++) {
+            op->data[i] = memory[i + baseIndex].content;
+        }
+    } else if (op->operation == STORE) {
+        for (int i = 0; i < op->numWords; i++) {
+            memory[i + baseIndex].content = op->data[i];
+        }
+    } else {
+        assert(0 && "Unsupported operation type");
+    }
+
+    // Update the access time
+    // The first access takes accessTimeSingle. If there is more than one word in the operation, the following take accessTimeBurst
+    rep->totalTime += accessTimeSingle;
+    rep->totalTime += accessTimeBurst * (op->numWords - 1);
 }
