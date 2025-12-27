@@ -31,7 +31,12 @@ GUI::GUI () {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
+    // Set the style to dark
     ImGui::StyleColorsDark();
+
+    // Load the images to the GPU
+    logo = LoadImageFromHeader(logoData, logoWidth, logoHeight, true);
+
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -50,6 +55,71 @@ GUI::~GUI () {
 
 SDL_Window* GUI::getWindow() {
     return window;
+}
+
+/**
+ * Decodes and loads the given image data to the GPU
+ * @param data The data to decode 
+ * @param width The width of the image
+ * @param height The height of the image
+ * @param setTaskbarIcon If true, also sets the image as the icon of the application in the OS' taskbar.
+ * @return unsigned char* Pointer to the RGBA buffer
+ */
+GLuint GUI::LoadImageFromHeader(char* data, int width, int height, bool setTaskbarIcon) {
+    unsigned char* rgbaData = (unsigned char*)malloc(width * height * 4);
+    
+    unsigned char* dest = rgbaData;
+    char* readPointer = data;
+
+    for (unsigned int i = 0; i < width * height; i++) {
+        unsigned char pixel[3];
+        HEADER_PIXEL(readPointer, pixel); // Macro from the H file. This is not very portable if there are multiple images
+        
+        dest[0] = pixel[0]; // R
+        dest[1] = pixel[1]; // G
+        dest[2] = pixel[2]; // B
+        dest[3] = 255;      // A (Opaque)
+        dest += 4;
+    }
+
+    // Set up the app's taskbar icon if chosen
+    if (setTaskbarIcon) {
+        // Create an SDL surface with the raw pixels
+        SDL_Surface* iconSurface = SDL_CreateRGBSurfaceFrom(
+            rgbaData, width, height, 32, width * 4,
+            0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+        );
+
+        // Set and free the icon
+        SDL_SetWindowIcon(window, iconSurface);
+        SDL_FreeSurface(iconSurface);
+    }
+
+    // Setup the texture
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    // Setup filtering so the image doesn't look blurry
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Upload the pixels
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaData);
+
+    // After loading the image to the GPU, the data can be freed from the CPU
+    free(rgbaData);
+    return image_texture;
+}
+
+/**
+ * Centers the next ImGui element that gets rendered. 
+ * @param itemWidth The width of the itme that will be rendered
+ */
+void GUI::centerNextItem(float itemWidth) {
+    float availX = ImGui::GetContentRegionAvail().x;
+    float pos = (availX - itemWidth) * 0.5f;
+    if (pos > 0.0f) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pos);
 }
 
 void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numLines, char* label) {
@@ -291,9 +361,10 @@ void GUI::renderMemoryWindow(Simulator* sim) {
  * Renders the file picker.
  * @param configPath Pointer to a sufficiently large array of characters for the config path
  * @param tracePath Pointer to a sufficiently large array of characters for the trace path
- * @param clickedOk Pointer to a boolean. Toggled true when the user clicks the launch button
+ * @param freshLaunch If true, displays the app's logo and welcome screen
+ * @param clickedLaunch Pointer to a boolean. Toggled true when the user clicks the launch button
  */
-void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool* clickedLaunch) {
+void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool freshLaunch, bool* clickedLaunch) {
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
     // Set a size and position based on the current workspace dimms
@@ -301,7 +372,21 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImVec2 windowPos((windowWidth / 2 - windowWidth * PICKER_WINDOW_WIDTH / 2), (windowHeight / 2 - windowHeight * PICKER_WINDOW_HEIGHT / 2));
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    
+    // Render the window
     ImGui::Begin("Welcome to NuCachis");
+
+    if (freshLaunch) {
+        // Center and draw the logo
+        centerNextItem(logoWidth / 4);
+        ImGui::Image((ImTextureID)(intptr_t)logo, ImVec2(logoWidth / 4, logoHeight / 4));
+
+        centerNextItem(ImGui::CalcTextSize(APP_DESC).x);
+        ImGui::Text(APP_DESC);
+    }
+
+    // Leave y pixels of vertical separation
+    ImGui::Dummy(ImVec2(0.0f, 25.0f));
     ImGui::Text("Please, pick a config and trace file to start the simulation");
 
     ImGui::InputText("##ConfigPicker", configPath, MAX_PATH_LENGTH);
@@ -321,9 +406,7 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseTraceFile", "Choose Trace File", ".vca", trace);
     }
 
-    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Spacing();
 
     if (ImGui::Button("Launch simulator")) {
         *clickedLaunch = true;
@@ -379,8 +462,17 @@ void GUI::renderError(char* message, bool* toggle) {
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 
     ImGui::Begin("Error");
+    // Draw a red, 5 times larger than usual exclamation and reset the style after doing so 
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); 
+    ImGui::SetWindowFontScale(5.0f); 
+    ImGui::Text("!");
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
     ImGui::Text(message);
 
+    ImGui::Separator();
     if (ImGui::Button("Ok")) {
         *toggle = !*toggle;
     }

@@ -79,11 +79,11 @@ int main(int argc, char** argv) {
 
             // Display the file picker if no files have been provided
             if (!filesProvided) {
-                gui->renderPicker(configPath, tracePath, &filesProvided);
+                gui->renderPicker(configPath, tracePath, true, &filesProvided);
                 
-                // If there was an error in the parsing operation, show the error
+                // If there was an error in the parsing operation, show the error. The first \n is a hacky way of adding padding to the top
                 if (filesParsingError) {
-                    gui->renderError((char*) "Error parsing configuration or trace.\nCheck the console for more info.", &filesParsingError);
+                    gui->renderError((char*) "\nError parsing configuration or trace.\nCheck the console for more info.", &filesParsingError);
                 }
             } else {
                 // Parse the files the first time they are provided
