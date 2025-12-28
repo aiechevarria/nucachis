@@ -47,7 +47,7 @@ set(PARSER_SOURCES
 )
 
 # Combine both
-add_executable(NuCachis
+add_executable(nucachis
     ${PROJECT_SOURCES}
     ${IMGUI_SOURCES}
     ${IMGUIFILEDIALOG_SOURCES}
@@ -58,7 +58,7 @@ add_executable(NuCachis
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
-target_link_libraries(NuCachis
+target_link_libraries(nucachis
     SDL2::SDL2
     OpenGL::GL
 )

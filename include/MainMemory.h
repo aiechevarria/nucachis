@@ -19,7 +19,7 @@ private:
     // The actual main memory
     MemoryLine* memory;
 
-    int32_t addressWidth, wordWidth;        // In Bytes
+    int32_t addressWidth, wordWidth;
     int64_t size, pageSize, pageBaseAddress;
     double accessTimeSingle, accessTimeBurst;
 

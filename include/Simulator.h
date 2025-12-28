@@ -20,7 +20,7 @@ private:
     MemoryOperation** operations;
 
     // CPU variables
-    int32_t addressWidth, wordWidth;        // In Bytes
+    int32_t addressWidth, wordWidth;
     uint32_t numOperations;
     uint8_t cacheLevels;
 
