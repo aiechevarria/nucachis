@@ -239,6 +239,9 @@ void GUI::renderInstructionWindow(Simulator* sim) {
             ImGui::TableSetColumnIndex(4); ops[i]->operation == STORE ? ImGui::Text("%lu", ops[i]->data[0]) : ImGui::Text("-");
         }
 
+        // If the last instruction has been executed already, color the last row independently. It will never get colored with the loop above as it exits 
+        if (cycle == numOps) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[COLOR_EXECUTE]));
+
         ImGui::EndTable();
     }
 
