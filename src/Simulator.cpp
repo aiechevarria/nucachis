@@ -13,6 +13,9 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation** ops) {
     cacheLevels = sc->miscCacheLevels;
     cycle = 0;
 
+    // Set the rand seed for the simulation
+    srand(sc->cpuRandSeed);
+
     // Store the trace
     operations = ops;
 

@@ -342,9 +342,10 @@ uint32_t Cache::findReplacement(CacheLine* cache, uint64_t address) {
             break;
 
         case RAND:
-            // If the policy is RAND, pick a line randomly
-            // TODO
+            // If the policy is RAND, pick a line randomly inside of that set
+            candidate = set * ways + (rand() % ways);
             break;
+
         default:
             assert(0 && "Invalid replacement policy used");
             break;
