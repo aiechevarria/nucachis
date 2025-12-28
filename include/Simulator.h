@@ -46,4 +46,6 @@ public:
     uint32_t getAddressWidth();
     uint32_t getWordWidth();
     double getTotalAccessTime();
+
+    void clearAllStyles();
 };

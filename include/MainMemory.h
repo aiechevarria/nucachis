@@ -10,6 +10,7 @@
 typedef struct {
     uint64_t address;
     uint32_t content;
+    ColorNames lineColor;
 } MemoryLine;
 
 class MainMemory : public MemoryElement {
@@ -36,6 +37,7 @@ public:
     uint64_t getAccessesBurst();
 
     virtual void processRequest(MemoryOperation* op, MemoryReply* rep) override;
+    virtual void clearStyle() override;
 
     void flush();
 };

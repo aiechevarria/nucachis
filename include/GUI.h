@@ -39,16 +39,6 @@
 #define ERROR_WINDOW_WIDTH  0.40
 #define ERROR_WINDOW_HEIGHT 0.20
 
-// GUI Colors
-typedef enum {
-    COLOR_RED,
-    COLOR_ORANGE,
-    COLOR_YELLOW,
-    COLOR_GREEN,
-    COLOR_BLUE,
-    COLOR_GREY,
-    NUM_COLOR_NAMES    
-} ColorNames;
 
 class GUI {
 private:

@@ -20,4 +20,7 @@ public:
 
     // Process request from another level
     virtual void processRequest(MemoryOperation* op, MemoryReply* rep) = 0;
+
+    // Clear the style of whatever structure stores the code.
+    virtual void clearStyle() = 0;
 };

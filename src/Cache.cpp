@@ -155,6 +155,7 @@ void Cache::flush() {
             caches[i][j].numberAccesses = -1;
             caches[i][j].valid = false;
             caches[i][j].dirty = false;
+            caches[i][j].lineColor = COLOR_NONE;
         }
     }
 }
@@ -288,8 +289,6 @@ void Cache::insertWordsInLine(CacheLine line, MemoryOperation* op) {
         line.content[i + baseIndex] = op->data[i];
     }
 }
-
-
 
 /**
  * Selects the most suitable line to be replaced on the cache for a given address. 
@@ -458,6 +457,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
         if (line != -1) {
             printf("L%u%c: Hit in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
             hits++;
+            cache[line].lineColor = COLOR_HIT;
 
             // Reply with that data
             extractWordsFromLine(cache[line], op, rep);
@@ -472,6 +472,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             // Fetch the line again
             line = searchAddress(cache, op->address);
             assert(line != -1 && "The line should be found after being brought"); 
+            cache[line].lineColor = COLOR_MISS;
 
             // Reply with that data
             extractWordsFromLine(cache[line], op, rep);
@@ -480,13 +481,14 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
         // For stores
         // If the cache is WT
         if (policyWrite == WRITE_THROUGH) {
-            // Note it as a hit allways
+            // Note it as a hit always
             hits++;
             
             // If the data is present in the cache, store it but do not flag it as dirty
             if (line != -1) {
                 printf("L%u%c: Write-Through, updating already present data\n", id + 1, op->isData ? 'D' : 'I');
                 insertWordsInLine(cache[line], op);
+                cache[line].lineColor = COLOR_HIT;
             }
 
             printf("L%u%c: Write-Through, sending store to lower level\n", id + 1, op->isData ? 'D' : 'I');
@@ -498,6 +500,8 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             // If the line is not present
             if (line == -1) {
                 misses++;
+                cache[line].lineColor = COLOR_MISS;
+
                 // Query the lower level (Write-allocate)
                 printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
                 rep->totalTime += fetchFromLowerLevel(cache, op->address, op->data);
@@ -507,6 +511,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 assert(line != -1 && "The line should be found after being brought"); 
             } else {
                 hits++;
+                cache[line].lineColor = COLOR_HIT;
             }
 
             printf("L%u%c: Storing in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
@@ -526,4 +531,15 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
     // Update the line stats
     cache[line].numberAccesses++;
     cache[line].lastAccess = cycle;
+}
+
+/**
+ * Clears the style from all cache rows. 
+ */
+void Cache::clearStyle() {
+    for (int i = 0; i < (isSplit ? 2 : 1); i++) {
+        for (int j = 0; j < lines; j++) {
+            caches[i][j].lineColor = COLOR_NONE;
+        }
+    }
 }

@@ -16,6 +16,7 @@ typedef struct {
     uint32_t tag, set, way;
     int32_t firstAccess, lastAccess, numberAccesses;
     bool valid, dirty;
+    ColorNames lineColor;
 } CacheLine;
 
 class Cache : public MemoryElement {
@@ -66,7 +67,8 @@ public:
     uint32_t getHits();
     uint32_t getMisses();
 
-    virtual void processRequest(MemoryOperation* op, MemoryReply* rep);
+    virtual void processRequest(MemoryOperation* op, MemoryReply* rep) override;
+    virtual void clearStyle() override;
 
     void flush();
 };

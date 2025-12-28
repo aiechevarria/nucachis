@@ -66,6 +66,19 @@ typedef struct {
     uint64_t* data;           // Pointer to the data that has been requested
 } MemoryReply;
 
+// GUI Colors
+typedef enum {
+    COLOR_HIT,          // Hit
+    COLOR_MISS,         // Hit after a miss
+    COLOR_LOAD_FIRST,   // Memory read 
+    COLOR_LOAD_BURST,
+    COLOR_STORE_FIRST,  // Memory write
+    COLOR_STORE_BURST,
+    COLOR_EXECUTE,      // Execute Instruction
+    COLOR_NONE,
+    NUM_COLOR_NAMES
+} ColorNames;
+
 /* Global variables */
 extern int debugLevel;
 extern uint32_t cycle;        // This should be in Simulator, but due to cyclic reference issues is has to be here, sorry.

@@ -1,12 +1,14 @@
 #include "GUI.h"
 
 ImVec4 colorVec[NUM_COLOR_NAMES] = {
-    ImVec4(1.0f, 0.0f, 0.0f, 1.0f), // COLOR_RED
-    ImVec4(1.0f, 0.5f, 0.0f, 1.0f), // COLOR_ORANGE
-    ImVec4(1.0f, 1.0f, 0.0f, 1.0f), // COLOR_YELLOW
-    ImVec4(0.0f, 1.0f, 0.0f, 1.0f), // COLOR_GREEN
-    ImVec4(0.0f, 0.0f, 1.0f, 1.0f), // COLOR_BLUE
-    ImVec4(0.5f, 0.5f, 0.5f, 1.0f)  // COLOR_GREY
+    ImVec4(0.03f, 1.0f, 0.5f, 1.0f),    // COLOR_HIT
+    ImVec4(0.9f, 0.05f, 0.25f, 1.0f),   // COLOR_MISS
+    ImVec4(0.05f, 0.5f, 1.0f, 1.0f),    // COLOR_LOAD_FIRST
+    ImVec4(0.05f, 0.8f, 1.0f, 1.0f),     // COLOR_LOAD_BURST
+    ImVec4(1.0f, 0.65f, 0.0f, 1.0f),    // COLOR_WRITE_FIRST
+    ImVec4(1.0f, 0.8f, 0.0f, 1.0f),     // COLOR_WRITE_BURST
+    ImVec4(0.5f, 0.5f, 0.5f, 0.5f),     // COLOR_EXECUTE
+    ImVec4(0.0f, 0.0f, 0.0f, 0.0f)      // COLOR_NONE
 };
 
 GUI::GUI () {
@@ -154,6 +156,9 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numL
                 ImGui::Text("%lu ", cache[i].content[j]);
                 ImGui::SameLine();
             }
+
+            // Apply color to the row if it has some style
+            if (cache[i].lineColor != COLOR_NONE) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[cache[i].lineColor]));
         }
 
         ImGui::EndTable();
@@ -175,8 +180,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 
     // Start the window disabling collapse
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Instruction Window", nullptr, window_flags);
+    ImGui::Begin("Instruction Window", nullptr, ImGuiWindowFlags_NoCollapse);
 
     // Buttons
     if (ImGui::Button("Single Step")) {
@@ -214,7 +218,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 
             // Highlight the current operation
             if (cycle != 0 && cycle == i) {
-                ImU32 rowColor = ImGui::GetColorU32(colorVec[COLOR_BLUE]);
+                ImU32 rowColor = ImGui::GetColorU32(colorVec[COLOR_EXECUTE]);
                 ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, rowColor);
             }
 
@@ -360,8 +364,11 @@ void GUI::renderMemoryWindow(Simulator* sim) {
 
         for (int i = 0; i < pageSize / sim->getWordWidth(); i++) {
             ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", memory[i].address);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%lX", memory[i].address);
             ImGui::TableSetColumnIndex(1); ImGui::Text("%d", memory[i].content);
+
+            // Apply color to the row if it has some style
+            if (memory[i].lineColor != COLOR_NONE) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[memory[i].lineColor]));
         }
 
         ImGui::EndTable();
@@ -382,12 +389,12 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
 
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * PICKER_WINDOW_WIDTH, windowHeight * PICKER_WINDOW_HEIGHT);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
     ImVec2 windowPos((windowWidth / 2 - windowWidth * PICKER_WINDOW_WIDTH / 2), (windowHeight / 2 - windowHeight * PICKER_WINDOW_HEIGHT / 2));
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_FirstUseEver);
     
     // Render the window
-    ImGui::Begin("Welcome to NuCachis");
+    ImGui::Begin("Welcome to NuCachis", nullptr, ImGuiWindowFlags_NoCollapse);
 
     if (freshLaunch) {
         // Center and draw the logo

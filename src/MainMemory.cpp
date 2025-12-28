@@ -81,6 +81,7 @@ void MainMemory::flush() {
     for (int i = 0; i < pageLimit; i++) {
         memory[i].address = i * wordWidth + pageBaseAddress;
         memory[i].content = i;
+        memory[i].lineColor = COLOR_NONE;
     }
 }
 
@@ -99,10 +100,12 @@ void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
     if (op->operation == LOAD) {
         for (int i = 0; i < op->numWords; i++) {
             rep->data[i] = memory[i + baseIndex].content;
+            (i == 0) ? memory[i + baseIndex].lineColor = COLOR_LOAD_FIRST : memory[i + baseIndex].lineColor = COLOR_LOAD_BURST;
         }
     } else if (op->operation == STORE) {
         for (int i = 0; i < op->numWords; i++) {
             memory[i + baseIndex].content = op->data[i];
+            (i == 0) ? memory[i + baseIndex].lineColor = COLOR_STORE_FIRST : memory[i + baseIndex].lineColor = COLOR_STORE_BURST;
         }
     } else {
         assert(0 && "Unsupported operation type");
@@ -116,4 +119,13 @@ void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
     // Update the stats following the same principles
     accessesSingle++;
     accessesBurst += (op->numWords - 1);
+}
+
+/**
+ * Clears the style from all memory rows. 
+ */
+void MainMemory::clearStyle() {
+    for (int i = 0; i < pageSize / wordWidth; i++) {
+        memory[i].lineColor = COLOR_NONE;
+    }
 }

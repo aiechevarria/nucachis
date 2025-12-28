@@ -60,6 +60,9 @@ void Simulator::singleStep() {
 
     // Check that the cycle is not greater than the number of ops
     if (cycle < numOperations) {
+        // Clear previous styles
+        clearAllStyles();
+
         // Set up the reply
         rep.totalTime = 0.0;
         rep.data = (uint64_t*) malloc(sizeof(uint64_t));
@@ -178,4 +181,15 @@ uint32_t Simulator::getWordWidth() {
  */
 double Simulator::getTotalAccessTime() {
     return totalAccessTime;
+}
+
+/**
+ * Clears the styles from all data structures.
+ */
+void Simulator::clearAllStyles() {
+    memory->clearStyle();
+    for (int i = 0; i < cacheLevels; i++) {
+        caches[i]->clearStyle();
+    }
+
 }
