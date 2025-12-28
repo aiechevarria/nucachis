@@ -15,7 +15,7 @@ const char* replacementPolicyStr(PolicyReplacement policy) { return strReplaceme
 const char* writePolicyStr(PolicyWrite policy) { return strWritePolicy[policy]; }
 
 // Global variables
-int debugLevel = 2;
+int debugLevel = 0;
 uint32_t cycle = 0;
 
 /**

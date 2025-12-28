@@ -12,5 +12,6 @@
 typedef struct {
     std::string configFile;
     std::string traceFile;
+    int debug;
     bool noGui = false;     // Gui is on by default
 } AppArgs;

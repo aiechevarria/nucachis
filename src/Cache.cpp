@@ -382,7 +382,7 @@ double Cache::fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isDat
     // Once the request is here, find a place to put it
     // Find replacement line function that uses the policy of the cache
     int32_t newLine = findReplacement(cache, address);
-    printf("L%u%c: Picked line %d to be evicted\n", id + 1, isData ? 'D' : 'I', newLine);
+    printf("L%u%c: Picked line %d to be evicted\n", id + 1, (!isData && isSplit) ? 'I' : 'D', newLine);
 
     // Evict the data to the lower level
     if (cache[newLine].valid && cache[newLine].dirty) {
@@ -400,7 +400,7 @@ double Cache::fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isDat
         evictRep.totalTime = 0.0;
 
         // Send the eviction as a STORE to the lower level
-        printf("L%u%c: Line %d is dirty and will be sent to the lower level\n", id + 1, isData ? 'D' : 'I', newLine);
+        printf("L%u%c: Line %d is dirty and will be sent to the lower level\n", id + 1, (!isData && isSplit) ? 'I' : 'D', newLine);
         next->processRequest(&evictOp, &evictRep);
 
         // Update the stats
@@ -455,7 +455,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
     if (op->operation == LOAD) {
         // If it is present 
         if (line != -1) {
-            printf("L%u%c: Hit in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
+            printf("L%u%c: Hit in line %d\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
             hits++;
             cache[line].lineColor = COLOR_HIT;
 
@@ -463,7 +463,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             extractWordsFromLine(cache[line], op, rep);
         } else {
             // If it is not present
-            printf("L%u%c: Miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
+            printf("L%u%c: Miss, fetching from lower level\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
             misses++;
 
             // Query the lower level
@@ -486,12 +486,12 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             
             // If the data is present in the cache, store it but do not flag it as dirty
             if (line != -1) {
-                printf("L%u%c: Write-Through, updating already present data\n", id + 1, op->isData ? 'D' : 'I');
+                printf("L%u%c: Write-Through, updating already present data\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
                 insertWordsInLine(cache[line], op);
                 cache[line].lineColor = COLOR_HIT;
             }
 
-            printf("L%u%c: Write-Through, sending store to lower level\n", id + 1, op->isData ? 'D' : 'I');
+            printf("L%u%c: Write-Through, sending store to lower level\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
 
             // Send it to the lower level (Reusing the reply, as no data will be stored on it)
             next->processRequest(op, rep);
@@ -502,7 +502,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 misses++;
 
                 // Query the lower level (Write-allocate)
-                printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
+                printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
                 rep->totalTime += fetchFromLowerLevel(cache, op->address, op->data);
 
                 // Search again for the address
@@ -514,7 +514,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 cache[line].lineColor = COLOR_HIT;
             }
 
-            printf("L%u%c: Storing in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
+            printf("L%u%c: Storing in line %d\n", id + 1,  (!op->isData && isSplit) ? 'I' : 'D', line);
 
             // Store the data
             insertWordsInLine(cache[line], op);

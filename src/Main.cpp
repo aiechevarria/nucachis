@@ -16,6 +16,9 @@ AppArgs parseArguments(int argc, char** argv) {
        ->check(CLI::ExistingFile);
     app.add_option("-t,--trace", args.traceFile, "Path to the trace file")
        ->check(CLI::ExistingFile);
+    app.add_flag("-d,--debug", args.debug, "Debug verbosity")
+        ->check(CLI::Range(0, 2))
+        ->default_val(0);
     app.add_flag("-g,--nogui", args.noGui, "Disable the GUI");
 
     try {
@@ -51,8 +54,18 @@ int main(int argc, char** argv) {
         strncpy(tracePath, args.traceFile.c_str(), MAX_PATH_LENGTH);
     }
 
+    debugLevel = args.debug;
+
     if (args.noGui) {
-        // TODO Add headless run
+        // If the files are correct, run the simulation
+        if (parseConfiguration(configPath, &sc) != -2 &&
+            parseTrace(tracePath, &ops, &sc.miscNumOperations) != -2) {
+
+            sim = new Simulator(&sc, ops); 
+            sim->stepAll(false);
+        } else {
+            fprintf(stderr, "Error: Check the configuration and trace argument paths are correct\n");
+        }
     } else {
         // Create a new GUI
         GUI* gui = new GUI();
@@ -75,7 +88,6 @@ int main(int argc, char** argv) {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL2_NewFrame();
             ImGui::NewFrame();
-
 
             // Display the file picker if no files have been provided
             if (!filesProvided) {

@@ -406,18 +406,6 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         parseConfDouble(ini, param, &sc->cacheAccessTime[cacheNumber], &errors);
     }
 
-    // ALL caches MUST have the same line size
-    if (sc->miscCacheLevels > 0) {
-       int64_t previous = sc->cacheLineSize[0];
-       for(int cacheNumber = 1; cacheNumber < sc->miscCacheLevels; cacheNumber++) {
-          if (sc->cacheLineSize[cacheNumber] != previous) {
-             fprintf(stderr,"Warning: All the caches must have the same line_size.\n");
-             errors++;
-             break;
-          }
-       }
-    }
-
     if (errors > 0) {
         fprintf(stderr,"\nTotal warnings: %d\n", errors);
         return -1;
