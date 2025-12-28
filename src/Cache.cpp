@@ -315,7 +315,7 @@ uint32_t Cache::findReplacement(CacheLine* cache, uint64_t address) {
             // If the policy is LRU, pick the one that has been referenced the longest ago
             for (int i = 0; i < ways; i++) {
                 if (oldest == -1 || cache[set * ways + i].lastAccess < oldest) {
-                    candidate = set * ways + 1;
+                    candidate = set * ways + i;
                     oldest = cache[set * ways + i].lastAccess;
                 }
             }
@@ -325,7 +325,7 @@ uint32_t Cache::findReplacement(CacheLine* cache, uint64_t address) {
             // If the policy is LRU, pick the one that has been referenced the least
             for (int i = 0; i < ways; i++) {
                 if (leastAccessed == -1 || cache[set * ways + i].numberAccesses < leastAccessed) {
-                    candidate = set * ways + 1;
+                    candidate = set * ways + i;
                     leastAccessed = cache[set * ways + i].numberAccesses;
                 }
             }
@@ -335,7 +335,7 @@ uint32_t Cache::findReplacement(CacheLine* cache, uint64_t address) {
             // If the policy is FIFO, pick the one that was brought first (AKA, the oldest first access)
             for (int i = 0; i < ways; i++) {
                 if (oldest == -1 || cache[set * ways + i].firstAccess < oldest) {
-                    candidate = set * ways + 1;
+                    candidate = set * ways + i;
                     oldest = cache[set * ways + i].firstAccess;
                 }
             }
