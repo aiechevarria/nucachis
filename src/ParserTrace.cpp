@@ -79,7 +79,7 @@ int parseLine(char* line, MemoryOperation* result){
          // Load/Fetch or Store (One character)
          case 0:
             if (strlen(pch) != 1 || ( *pch != 'L' && *pch != 'S')) {
-               fprintf(stderr, "Memory operation must be Load (L) or Store (S).");
+               fprintf(stderr, "TraceParser Error: Memory operation must be Load (L) or Store (S).");
                return -1;
             }
 
@@ -93,7 +93,7 @@ int parseLine(char* line, MemoryOperation* result){
          // Address (Must be in hexadecimal)
          case 1:
             if (!isCorrectHexadecimal(pch)) {
-               fprintf(stderr, "Invalid or non hexadecimal address.");
+               fprintf(stderr, "TraceParser Error: Invalid or non hexadecimal address.");
                return -1;
             }
 
@@ -103,14 +103,14 @@ int parseLine(char* line, MemoryOperation* result){
          // Instruction or Data (One character)
          case 2: 
             if (strlen(pch) != 1 || ( *pch != 'I' && *pch != 'D')) {
-               fprintf(stderr, "Memory operation must be Intruction (I) or Data (D).");
+               fprintf(stderr, "TraceParser Error: Memory operation must be Intruction (I) or Data (D).");
                return -1;
             }
 
             if (*pch == 'I') {
                // Check that an instruction will be stored
                if (result->operation == STORE) {
-                  fprintf(stderr, "You cannot Store (S) an Instruction (I).");
+                  fprintf(stderr, "TraceParser Error: You cannot Store (S) an Instruction (I).");
                   return -1;
                }
 
@@ -123,7 +123,7 @@ int parseLine(char* line, MemoryOperation* result){
          // Data (Must be a number)
          case 3:
             if (!isCorrectDecimal(pch)) {
-               fprintf(stderr, "Invalid data.");
+               fprintf(stderr, "TraceParser Error: Invalid data.");
                return -1;
             }
 
@@ -134,14 +134,14 @@ int parseLine(char* line, MemoryOperation* result){
             result->data[0] = atol(pch);
 
             if (result->operation == LOAD) {
-               fprintf(stderr, "You cannot use the data field in load (L) operations.");
+               fprintf(stderr, "TraceParser Error: You cannot use the data field in load (L) operations.");
                return -1;
             }
             break;
 
          // Too many fields
          default:
-            fprintf(stderr, "Too many fields.");
+            fprintf(stderr, "TraceParser Error: Too many fields.");
             return -1;
       }
 
@@ -161,7 +161,7 @@ int parseLine(char* line, MemoryOperation* result){
 
    // Check the minimum required fields are present
    if (fieldId < 3) {
-      fprintf(stderr, "Too few fields.");
+      fprintf(stderr, "TraceParser Error: Too few fields.");
       return -1;
    }
 
@@ -193,7 +193,7 @@ int parseTrace(const char* traceFile, MemoryOperation*** ops, uint32_t* numOpera
    file = fopen(traceFile, "r");
 
    if (file == NULL){
-      fprintf(stderr,"Error: Cannot open file %s.\n", traceFile);
+      fprintf(stderr,"TraceParser Error: Cannot open file %s.\n", traceFile);
       return -2;
    }
 

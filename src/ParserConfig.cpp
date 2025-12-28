@@ -36,10 +36,10 @@ void parseConfInt(dictionary* ini, const char* key, int* confVariable, int* erro
     int value = parseInt(confString);
 
     if (value == -1) {
-        fprintf(stderr,"Error: %s value is not valid\n", key);
+        fprintf(stderr,"ConfigParser Error: %s value is not valid\n", key);
         (*errors)++;
     } else if (value == -2) {
-        fprintf(stderr,"Error: Missing mandatory key %s\n", key);
+        fprintf(stderr,"ConfigParser Error: Missing mandatory key %s\n", key);
         (*errors)++;
     } else {
         *confVariable = value;
@@ -60,10 +60,10 @@ void parseConfLong(dictionary *ini, const char *key, long int *confVariable, int
     long value = parseLong(confString, base2);
 
     if (value == -1) {
-        fprintf(stderr,"Error: %s value is not valid\n", key);
+        fprintf(stderr,"ConfigParser Error: %s value is not valid\n", key);
         (*errors)++;
     } else if (value == -2) {
-        fprintf(stderr,"Error: Missing mandatory key %s\n", key);
+        fprintf(stderr,"ConfigParser Error: Missing mandatory key %s\n", key);
         (*errors)++;
     } else {
         *confVariable = value;
@@ -83,10 +83,10 @@ void parseConfDouble(dictionary *ini, const char *key, double *confVariable, int
     double value = parseDouble(confString);
 
     if (value == -1) {
-        fprintf(stderr,"Error: %s value is not valid\n", key);
+        fprintf(stderr,"ConfigParser Error: %s value is not valid\n", key);
         (*errors)++;
     } else if (value == -2) {
-        fprintf(stderr,"Error: Missing mandatory key %s\n", key);
+        fprintf(stderr,"ConfigParser Error: Missing mandatory key %s\n", key);
         (*errors)++;
     } else {
         *confVariable = value;
@@ -106,10 +106,10 @@ void parseConfAddress(dictionary *ini, const char *key, long int *confVariable, 
     long value = parseAddress(confString);
 
     if (value == -1) {
-        fprintf(stderr,"Error: %s value is not valid\n", key);
+        fprintf(stderr,"ConfigParser Error: %s value is not valid\n", key);
         (*errors)++;
     } else if (value == -2) {
-        fprintf(stderr,"Error: Missing mandatory key %s\n", key);
+        fprintf(stderr,"ConfigParser Error: Missing mandatory key %s\n", key);
         (*errors)++;
     } else {
         *confVariable = value;
@@ -136,7 +136,7 @@ void checkSectionKeys(dictionary *ini, const char *section, int numberOfValidKey
          }
       }
       // This key matches none of the known keys of a cache section
-      fprintf(stderr,"Error: unknown key %s\n", keys[i]);
+      fprintf(stderr,"ConfigParser Error: Unknown key %s\n", keys[i]);
       (*errors)++;
       nextKey:;
    }
@@ -152,7 +152,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
     dictionary *ini;
 
     if ((ini = iniparser_load(iniName)) == NULL) {
-        fprintf(stderr, "Error loading file: %s\n", iniName);
+        fprintf(stderr, "ConfigParser Error: Unable to load file %s\n", iniName);
         return NULL;
     }
 
@@ -179,9 +179,9 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
             int correctNum = 1;
             // Get the length of the section name
             int len = strlen(section);
-            // Error if there is no characters following 'cache'
+            // ConfigParser Error if there is no characters following 'cache'
             if (len <= 5) {
-                fprintf(stderr,"Error: Invalid [cache] section. It must contain the cache level number. [cacheN]\n");
+                fprintf(stderr,"ConfigParser Error: Invalid [cache] section. It must contain the cache level number. [cacheN]\n");
                 correctNum=0;
                 errors++;
             }
@@ -191,7 +191,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
             for (int j=0; cacheNumberStr[j] && correctNum; j++) {
                 if (!isdigit(cacheNumberStr[j])) {
                     correctNum = 0;
-                    fprintf(stderr,"Error: Invalid cache section name [%s]\n", section);
+                    fprintf(stderr,"ConfigParser Error: Invalid cache section name [%s]\n", section);
                     errors++;
                 }
             }
@@ -207,14 +207,14 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
             }
         // If the section name isn't "cpu" or "memory" and section name isn't like "cache..." then error.
         } else {
-            fprintf(stderr,"Error: Unknown section name [%s]\n", section);
+            fprintf(stderr,"ConfigParser Error: Unknown section name [%s]\n", section);
             errors++;
         }
     }
 
     // Check the mandatory [cpu] section
     if (numberCPUs == 0) {
-        fprintf(stderr,"Error: Missing mandatory section [cpu]\n");
+        fprintf(stderr,"ConfigParser Error: Missing mandatory section [cpu]\n");
         errors++;
     // Look for unknown keys in [cpu] section
     } else {
@@ -223,7 +223,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
 
     // Check the mandatory [memory] section
     if (numberMemories == 0) {
-        fprintf(stderr,"Error: Missing mandatory section [memory]\n");
+        fprintf(stderr,"ConfigParser Error: Missing mandatory section [memory]\n");
         errors++;
     // Look for unknown keys in [memory] section
     } else {
@@ -232,7 +232,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
 
     // Check that the number of cache levels is within range
     if (numberCaches > MAX_CACHE_LEVELS) {
-        fprintf(stderr,"Error: The number of caches is excesive.\n");
+        fprintf(stderr,"ConfigParser Error: The number of caches is excesive.\n");
         errors++;
     }
 
@@ -270,11 +270,11 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
 
     // Check the address and word widths are powers of two
     if (!isPowerOf2(sc->cpuAddressWidth)) {
-         fprintf(stderr,"Error: cpu:address_width must be power of 2\n");
+         fprintf(stderr,"ConfigParser Error: cpu:address_width must be power of 2\n");
          errors++;
     }
     if (!isPowerOf2(sc->cpuWordWidth)) {
-         fprintf(stderr,"Error: cpu:word_width must be power of 2\n");
+         fprintf(stderr,"ConfigParser Error: cpu:word_width must be power of 2\n");
          errors++;
     }
 
@@ -287,23 +287,23 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     long maxMemory = pow(2, sc->cpuAddressWidth);
 
     if (sc->memSize > maxMemory) {
-	    fprintf(stderr,"Warning: memory:size is too big for a %d bits machine.\n", sc->cpuAddressWidth);
+	    fprintf(stderr,"ConfigParser Warning: memory:size is too big for a %d bits machine.\n", sc->cpuAddressWidth);
         errors++;
     }
     if (sc->memSize % sc->memPageSize != 0) {
-	    fprintf(stderr,"Warning: memory:size must be a multiple of memory:page_size\n");
+	    fprintf(stderr,"ConfigParser Warning: memory:size must be a multiple of memory:page_size\n");
         errors++;
     }
     if (!isPowerOf2(sc->memPageSize)) {
-	    fprintf(stderr,"Warning: memory:page_size must be power of 2\n");
+	    fprintf(stderr,"ConfigParser Warning: memory:page_size must be power of 2\n");
         errors++;
     }
     if (sc->memPageBaseAddress % sc->memPageSize != 0) {
-	    fprintf(stderr,"Warning: memory:page_base_address is invalid\n");
+	    fprintf(stderr,"ConfigParser Warning: memory:page_base_address is invalid\n");
         errors++;
     }
     if (sc->memPageBaseAddress < 0 || sc->memPageBaseAddress > maxMemory - 1) {
-	    fprintf(stderr,"Warning: memory:page_base_address is out of range.\n");
+	    fprintf(stderr,"ConfigParser Warning: memory:page_base_address is out of range.\n");
         errors++;
     }
 
@@ -315,7 +315,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         sprintf(param, "cache%d:line_size", cacheNumber + 1);
         parseConfLong(ini, param, &sc->cacheLineSize[cacheNumber],&errors,true);
         if (!isPowerOf2(sc->cacheLineSize[cacheNumber])) {
-	        fprintf(stderr,"Warning: cache%d:line_size must be power of 2\n", cacheNumber + 1);
+	        fprintf(stderr,"ConfigParser Warning: cache%d:line_size must be power of 2\n", cacheNumber + 1);
             errors++;
 	    }
 
@@ -323,7 +323,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         sprintf(param, "cache%d:size", cacheNumber + 1);
         parseConfLong(ini, param, &sc->cacheSize[cacheNumber],&errors, true);
         if ((sc->cacheSize[cacheNumber]) % (sc->cacheLineSize[cacheNumber]) != 0) {
-	        fprintf(stderr,"Warning: cache%d:size must be a multiple of cache%d:line_size\n", cacheNumber + 1, cacheNumber + 1);
+	        fprintf(stderr,"ConfigParser Warning: cache%d:size must be a multiple of cache%d:line_size\n", cacheNumber + 1, cacheNumber + 1);
             errors++;
 	    }
 
@@ -332,10 +332,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cacheSeparated = iniparser_getstring(ini, param, NULL);
         long long_separated = parseBoolean(cacheSeparated);
         if (long_separated == -1) {
-            fprintf(stderr,"Warning: cache%d:separated value is not valid\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: cache%d:separated value is not valid\n", cacheNumber + 1);
             errors++;
         } else if (long_separated == -2) {
-            fprintf(stderr,"Warning: Missing value cache%d:separated\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: Missing value cache%d:separated\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cacheIsSplit[cacheNumber] = long_separated;
@@ -357,16 +357,16 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         } else {
             long long_asociativity = parseInt(cache_asociativity);
             if (long_asociativity == -1) {
-                fprintf(stderr,"Warning: cache%d:associativity value is not valid\n", cacheNumber + 1);
+                fprintf(stderr,"ConfigParser Warning: cache%d:associativity value is not valid\n", cacheNumber + 1);
                 errors++;
             } else if (long_asociativity == -2) {
-                fprintf(stderr,"Warning: Missing value cache%d:associativity\n", cacheNumber + 1);
+                fprintf(stderr,"ConfigParser Warning: Missing value cache%d:associativity\n", cacheNumber + 1);
                 errors++;
             } else if (!isPowerOf2(long_asociativity)) {
-                fprintf(stderr,"Warning: The value of cache%d:associativity must be power of 2\n", cacheNumber + 1);
+                fprintf(stderr,"ConfigParser Warning: The value of cache%d:associativity must be power of 2\n", cacheNumber + 1);
                 errors++;
             } else if (long_asociativity>num_lines) {
-                fprintf(stderr,"Warning: The value of cache%d:associativity can't be bigger than the number of lines\n", cacheNumber + 1);
+                fprintf(stderr,"ConfigParser Warning: The value of cache%d:associativity can't be bigger than the number of lines\n", cacheNumber + 1);
                 errors++;
             }else {
                 sc->cacheAssoc[cacheNumber] = long_asociativity;
@@ -378,10 +378,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cache_write_policy = iniparser_getstring(ini, param, NULL);
         long long_write_policy = parseWritePolicy(cache_write_policy);
         if (long_write_policy == -1) {
-            fprintf(stderr,"Warning: cache%d:write_policy value is not valid\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: cache%d:write_policy value is not valid\n", cacheNumber + 1);
             errors++;
         } else if (long_write_policy==-2) {
-            fprintf(stderr,"Warning: Missing value cache%d:write_policy\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: Missing value cache%d:write_policy\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cachePolicyWrite[cacheNumber] = (PolicyWrite) long_write_policy;
@@ -392,10 +392,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cache_replacement = iniparser_getstring(ini, param, NULL);
         long long_replacement = parseReplacementPolicy(cache_replacement);
         if (long_replacement == -1) {
-            fprintf(stderr,"Warning: replacement_policy value for cache%d is not valid.\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: replacement_policy value for cache%d is not valid.\n", cacheNumber + 1);
             errors++;
         } else if (long_replacement == -2) {
-            fprintf(stderr,"Warning: Missing replacement_policy value for cache%d.\n", cacheNumber + 1);
+            fprintf(stderr,"ConfigParser Warning: Missing replacement_policy value for cache%d.\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cachePolicyReplacement[cacheNumber] = (PolicyReplacement) long_replacement;
