@@ -4,6 +4,10 @@
 <h1 align="center">NuCachis</h1>
 <h2 align="center">A simple, interactive cache simulator</h2>
 <h3 align="center"><a>https://www.atc.unican.es</a></h3>
+<div align="center">
+  <img src="./assets/screenshot1.png" width="600" alt="Screenshot 1" style="margin: 20px;"/>
+  <img src="./assets/screenshot2.png" width="600" alt="Screenshot 2" style="margin: 20px;"/>
+</div>
 
 ## About the project
 NuCachis is a simple and interactive, trace-based simulator created for educational purposes. Its main features are:
