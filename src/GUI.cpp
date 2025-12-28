@@ -455,6 +455,7 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
     ImGui::SameLine();
 
     if (ImGui::Button("Pick config")) {
+        ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
         IGFD::FileDialogConfig config;
         config.path = '.';
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseConfigFile", "Choose Config File", ".ini", config);
@@ -463,6 +464,7 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
     ImGui::InputText("##TracePicker", tracePath, MAX_PATH_LENGTH);
     ImGui::SameLine();
     if (ImGui::Button("Pick trace")) {
+        ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
         IGFD::FileDialogConfig trace;
         trace.path = '.';
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseTraceFile", "Choose Trace File", ".vca", trace);
