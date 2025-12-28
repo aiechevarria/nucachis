@@ -396,10 +396,18 @@ void GUI::renderMemoryWindow(Simulator* sim) {
     uint64_t pageSize = sim->getMemory()->getPageSize();
 
     // Set a size and position based on the current workspace dimms
-    ImVec2 windowSize(windowWidth * MEM_WINDOW_WIDTH, windowHeight * MEM_WINDOW_HEIGHT);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-    ImVec2 windowPos(windowWidth * INSTR_WINDOW_WIDTH + windowWidth * CACHE_WINDOW_WIDTH, 0);
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    if (sim->getNumCaches() > 0) {
+        ImVec2 windowSize(windowWidth * MEM_WINDOW_WIDTH, windowHeight * MEM_WINDOW_HEIGHT);
+        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        ImVec2 windowPos(windowWidth * INSTR_WINDOW_WIDTH + windowWidth * CACHE_WINDOW_WIDTH, 0);
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    } else {
+        // If there are no caches, make the memory window larger
+        ImVec2 windowSize(windowWidth * (CACHE_WINDOW_WIDTH + MEM_WINDOW_WIDTH), windowHeight * MEM_WINDOW_HEIGHT);
+        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        ImVec2 windowPos((windowWidth * INSTR_WINDOW_WIDTH), 0);
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    }
 
     // Start the window disabling collapse
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
@@ -531,7 +539,7 @@ void GUI::renderWorkspace(Simulator* sim) {
     // Render all different parts of the GUI
     renderInstructionWindow(sim);
     renderStatsWindow(sim);
-    renderCacheWindow(sim);
+    if (sim->getNumCaches() > 0) renderCacheWindow(sim);
     renderMemoryWindow(sim);
 }
 

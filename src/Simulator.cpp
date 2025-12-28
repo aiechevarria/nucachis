@@ -7,8 +7,8 @@
  */
 Simulator::Simulator(SimulatorConfig* sc, MemoryOperation** ops) {
     // Store the simulator and CPU configs
-    wordWidth = sc->cpuWordWidth / 4;
-    addressWidth = sc->cpuAddressWidth / 4;
+    wordWidth = sc->cpuWordWidth / 8;           // In Bytes
+    addressWidth = sc->cpuAddressWidth;         // In bits
     numOperations = sc->miscNumOperations;
     cacheLevels = sc->miscCacheLevels;
     cycle = 0;
@@ -166,7 +166,7 @@ uint8_t Simulator::getNumCaches() {
 }
 
 /**
- * Returns the address width in Bytes.
+ * Returns the address width in bits.
  * @return uint32_t The address width in Bytes 
  */
 uint32_t Simulator::getAddressWidth() {

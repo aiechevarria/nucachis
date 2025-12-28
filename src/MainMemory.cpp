@@ -3,7 +3,7 @@
 
 MainMemory::MainMemory(SimulatorConfig* sc) {
     wordWidth = sc->cpuWordWidth / 8;               // In Bytes
-    addressWidth = sc->cpuAddressWidth / 8;         // In Bytes
+    addressWidth = sc->cpuAddressWidth;             // In bits
 
     // Memory geometry
     size = sc->memSize;                             // In Bytes
