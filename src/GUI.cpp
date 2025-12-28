@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "Logo.cpp"
 
 ImVec4 colorVec[NUM_COLOR_NAMES] = {
     ImVec4(0.03f, 1.0f, 0.5f, 1.0f),    // COLOR_HIT
@@ -37,7 +38,7 @@ GUI::GUI () {
     ImGui::StyleColorsDark();
 
     // Load the images to the GPU
-    logo = LoadImageFromHeader(logoData, logoWidth, logoHeight, true);
+    logo = LoadImageFromCSource(logoData.pixelData, logoData.width, logoData.height, true);
 
     // Init the scroll variables
     scrolledInstructions = false;
@@ -67,57 +68,41 @@ SDL_Window* GUI::getWindow() {
 
 /**
  * Decodes and loads the given image data to the GPU
- * @param data The data to decode 
+ * @param rawData The data to decode 
  * @param width The width of the image
  * @param height The height of the image
  * @param setTaskbarIcon If true, also sets the image as the icon of the application in the OS' taskbar.
  * @return unsigned char* Pointer to the RGBA buffer
  */
-GLuint GUI::LoadImageFromHeader(char* data, int width, int height, bool setTaskbarIcon) {
-    unsigned char* rgbaData = (unsigned char*)malloc(width * height * 4);
-    
-    unsigned char* dest = rgbaData;
-    char* readPointer = data;
-
-    for (unsigned int i = 0; i < width * height; i++) {
-        unsigned char pixel[3];
-        HEADER_PIXEL(readPointer, pixel); // Macro from the H file. This is not very portable if there are multiple images
-        
-        dest[0] = pixel[0]; // R
-        dest[1] = pixel[1]; // G
-        dest[2] = pixel[2]; // B
-        dest[3] = 255;      // A (Opaque)
-        dest += 4;
-    }
-
-    // Set up the app's taskbar icon if chosen
+GLuint GUI::LoadImageFromCSource(const unsigned char* rawData, int width, int height, bool setTaskbarIcon) {
+    // To set the icon, raw data can be passed directly
     if (setTaskbarIcon) {
-        // Create an SDL surface with the raw pixels
         SDL_Surface* iconSurface = SDL_CreateRGBSurfaceFrom(
-            rgbaData, width, height, 32, width * 4,
-            0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+            (void*)rawData,
+            width, height, 32,                             // Depth
+            width * 4,                                     // Pitch (Row size in bytes)
+            0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 // RGBA Masks
         );
 
-        // Set and free the icon
-        SDL_SetWindowIcon(window, iconSurface);
-        SDL_FreeSurface(iconSurface);
+        if (iconSurface) {
+            SDL_SetWindowIcon(window, iconSurface);
+            SDL_FreeSurface(iconSurface); // Free the struct
+        }
     }
 
-    // Setup the texture
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
+    // Unpack the texture and upload the pixels to the GPU
+    GLuint imageTexture;
+    glGenTextures(1, &imageTexture);
+    glBindTexture(GL_TEXTURE_2D, imageTexture);
 
-    // Setup filtering so the image doesn't look blurry
+    // Setup filtering so that the image is not blurry
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Upload the pixels
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaData);
+    // Upload pixels directly from the static array
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawData);
 
-    // After loading the image to the GPU, the data can be freed from the CPU
-    free(rgbaData);
-    return image_texture;
+    return imageTexture;
 }
 
 /**
@@ -480,8 +465,8 @@ void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH
 
     if (freshLaunch) {
         // Center and draw the logo
-        centerNextItem(logoWidth / 4);
-        ImGui::Image((ImTextureID)(intptr_t)logo, ImVec2(logoWidth / 4, logoHeight / 4));
+        centerNextItem(logoData.width / 4);
+        ImGui::Image((ImTextureID)(intptr_t)logo, ImVec2(logoData.width / 4, logoData.height / 4));
 
         centerNextItem(ImGui::CalcTextSize(APP_DESC).x);
         ImGui::Text(APP_DESC);
@@ -574,7 +559,7 @@ void GUI::renderError(char* message, bool* toggle) {
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::Text(message);
+    ImGui::Text((const char*) message);
 
     ImGui::Separator();
     if (ImGui::Button("Ok")) {

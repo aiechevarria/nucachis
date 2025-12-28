@@ -9,7 +9,6 @@
 #include "imgui_impl_opengl3.h"
 #include "ImGuiFileDialog.h"
 #include "Misc.h"
-#include "Logo.h"
 #include "Simulator.h"
 #include "MainMemory.h"
 
@@ -58,7 +57,7 @@ private:
     int windowHeight, windowWidth; 
 
     // Draw functions
-    GLuint LoadImageFromHeader(char* data, int width, int height, bool setTaskbarIcon);
+    GLuint LoadImageFromCSource(const unsigned char* rawData, int width, int height, bool setTaskbarIcon);
     void centerNextItem(float itemWidth);
     void drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, uint32_t numLines, char* label);
 

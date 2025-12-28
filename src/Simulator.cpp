@@ -19,6 +19,9 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation** ops) {
     // Store the trace
     operations = ops;
 
+    // Init the stats
+    totalAccessTime = 0.0f;
+
     // Create the memory hierarchy
     memory = new MainMemory(sc);
     for (int i = 0; i < cacheLevels; i++) {

@@ -456,7 +456,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
     if (op->operation == LOAD) {
         // If it is present 
         if (line != -1) {
-            printf("L%u%c: Hit in line %d\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D');
+            printf("L%u%c: Hit in line %d\n", id + 1, (!op->isData && isSplit) ? 'I' : 'D', line);
             hits++;
             cache[line].lineColor = COLOR_HIT;
 
