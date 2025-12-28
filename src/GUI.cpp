@@ -7,7 +7,7 @@ ImVec4 colorVec[NUM_COLOR_NAMES] = {
     ImVec4(0.05f, 0.8f, 1.0f, 1.0f),     // COLOR_LOAD_BURST
     ImVec4(1.0f, 0.65f, 0.0f, 1.0f),    // COLOR_WRITE_FIRST
     ImVec4(1.0f, 0.8f, 0.0f, 1.0f),     // COLOR_WRITE_BURST
-    ImVec4(0.5f, 0.5f, 0.5f, 0.5f),     // COLOR_EXECUTE
+    ImVec4(0.5f, 0.5f, 0.5f, 1.0f),     // COLOR_EXECUTE
     ImVec4(0.0f, 0.0f, 0.0f, 0.0f)      // COLOR_NONE
 };
 
@@ -261,7 +261,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 }
 
 /**
- * Renders the stats window.
+ * Renders the stats and misc window.
  * @param sim Pointer to the simulator
  */
 void GUI::renderStatsWindow(Simulator* sim) {
@@ -272,26 +272,66 @@ void GUI::renderStatsWindow(Simulator* sim) {
     
     // Start the window disabling collapse
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Statistics", nullptr, window_flags);
-
-    ImGui::Text("CPU:");
-    ImGui::Text("\tTotal access time (s): %.4f", sim->getTotalAccessTime());
-    cycle != 0 ? ImGui::Text("\tAverage memory access time (s): %.4f", sim->getTotalAccessTime() / (double) cycle) : ImGui::Text("\tAverage memory access time (ms): -");
+    ImGui::Begin("Misc", nullptr, window_flags);
+    if (ImGui::BeginTabBar("TabbedMisc")) {
+        if (ImGui::BeginTabItem("Statistics")) {
+            ImGui::Text("CPU:");
+            ImGui::Text("\tTotal access time (s): %.4f", sim->getTotalAccessTime());
+            cycle != 0 ? ImGui::Text("\tAverage memory access time (s): %.4f", sim->getTotalAccessTime() / (double) cycle) : ImGui::Text("\tAverage memory access time (ms): -");
     
-    for (int i = 0; i < sim->getNumCaches(); i++) {
-        Cache* cache = sim ->getCache(i);
-        ImGui::Text("\nCache L%d:", i + 1);
-        ImGui::Text("\tTotal accesses: %d", cache->getAccesses());
-        ImGui::Text("\tHits: %d", cache->getHits());
-        ImGui::Text("\tMisses: %d", cache->getMisses());
-        cycle != 0 ? ImGui::Text("\tHit rate: %.1f%%", cache->getHits() / (double) cycle * 100) : ImGui::Text("\tHit rate: -");
-        cycle != 0 ? ImGui::Text("\tMiss rate: %.1f%%", cache->getMisses() / (double) cycle * 100) : ImGui::Text("\tMiss rate: ");
-    }
+            for (int i = 0; i < sim->getNumCaches(); i++) {
+                Cache* cache = sim ->getCache(i);
+                ImGui::Text("\nCache L%d:", i + 1);
+                ImGui::Text("\tTotal accesses: %d", cache->getAccesses());
+                ImGui::Text("\tHits: %d", cache->getHits());
+                ImGui::Text("\tMisses: %d", cache->getMisses());
+                cycle != 0 ? ImGui::Text("\tHit rate: %.1f%%", cache->getHits() / (double) cycle * 100) : ImGui::Text("\tHit rate: -");
+                cycle != 0 ? ImGui::Text("\tMiss rate: %.1f%%", cache->getMisses() / (double) cycle * 100) : ImGui::Text("\tMiss rate: ");
+            }
 
-    ImGui::Text("\nMemory:");
-    ImGui::Text("\tTotal accesses: %ld", sim->getMemory()->getAccessesBurst() + sim->getMemory()->getAccessesSingle());
-    ImGui::Text("\tFirst word accesses: %ld", sim->getMemory()->getAccessesSingle());
-    ImGui::Text("\tBurst accesses: %ld", sim->getMemory()->getAccessesBurst());
+            ImGui::Text("\nMemory:");
+            ImGui::Text("\tTotal accesses: %ld", sim->getMemory()->getAccessesBurst() + sim->getMemory()->getAccessesSingle());
+            ImGui::Text("\tFirst word accesses: %ld", sim->getMemory()->getAccessesSingle());
+            ImGui::Text("\tBurst accesses: %ld", sim->getMemory()->getAccessesBurst());
+
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Legend")) {
+            ImGui::Text("Color legend:");
+            ImGui::ColorButton("##Legend1", colorVec[COLOR_HIT], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("Hit");
+
+            ImGui::ColorButton("##Legend2", colorVec[COLOR_MISS], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("Miss then hit");
+
+            ImGui::ColorButton("##Legend3", colorVec[COLOR_LOAD_FIRST], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("First word loaded from memory");
+
+            ImGui::ColorButton("##Legend4", colorVec[COLOR_LOAD_BURST], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("Burst word loaded from memory");
+
+            ImGui::ColorButton("##Legend5", colorVec[COLOR_STORE_FIRST], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("First word written to memory");
+
+            ImGui::ColorButton("##Legend6", colorVec[COLOR_STORE_BURST], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("Burst word written to memory");
+
+            ImGui::ColorButton("##Legend7", colorVec[COLOR_EXECUTE], ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+            ImGui::SameLine();
+            ImGui::Text("Last executed operation");
+
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
 
     ImGui::End();
 }
