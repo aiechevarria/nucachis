@@ -559,7 +559,7 @@ void GUI::renderError(char* message, bool* toggle) {
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::Text((const char*) message);
+    ImGui::Text("%s", message);
 
     ImGui::Separator();
     if (ImGui::Button("Ok")) {
