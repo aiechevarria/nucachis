@@ -500,7 +500,6 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             // If the line is not present
             if (line == -1) {
                 misses++;
-                cache[line].lineColor = COLOR_MISS;
 
                 // Query the lower level (Write-allocate)
                 printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
@@ -509,6 +508,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 // Search again for the address
                 line = searchAddress(cache, op->address);
                 assert(line != -1 && "The line should be found after being brought"); 
+                cache[line].lineColor = COLOR_MISS;
             } else {
                 hits++;
                 cache[line].lineColor = COLOR_HIT;

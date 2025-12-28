@@ -48,19 +48,26 @@ private:
     // Images
     GLuint logo;
 
+    // Table scroll
+    // Used to scroll the first time a cycle passes but not hold the scroll in a certain position
+    bool scrolledInstructions;
+    bool scrolledCache[MAX_CACHE_LEVELS];
+    bool scrolledMemory;
+
     // Window sizes
     int windowHeight, windowWidth; 
 
     // Draw functions
     GLuint LoadImageFromHeader(char* data, int width, int height, bool setTaskbarIcon);
     void centerNextItem(float itemWidth);
-    void drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numLines, char* label);
+    void drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, uint32_t numLines, char* label);
 
     // Main section renderers
     void renderInstructionWindow(Simulator* sim);
     void renderStatsWindow(Simulator* sim);
     void renderCacheWindow(Simulator* sim);
     void renderMemoryWindow(Simulator* sim);
+    void resetScroll();
 
 public:
     GUI();
@@ -69,4 +76,5 @@ public:
     void renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool freshLaunch, bool* clickedLaunch);
     void renderWorkspace(Simulator* sim);
     void renderError(char* message, bool* toggle);
+    
 };

@@ -39,6 +39,12 @@ GUI::GUI () {
     // Load the images to the GPU
     logo = LoadImageFromHeader(logoData, logoWidth, logoHeight, true);
 
+    // Init the scroll variables
+    scrolledInstructions = false;
+    scrolledMemory = false;
+    for (int i = 0; i < MAX_CACHE_LEVELS; i++) {
+        scrolledCache[i] = false;
+    }
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -124,7 +130,7 @@ void GUI::centerNextItem(float itemWidth) {
     if (pos > 0.0f) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pos);
 }
 
-void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numLines, char* label) {
+void GUI::drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, uint32_t numLines, char* label) {
     ImGui::Text("%s\n", label);
 
     // Display the instruction cache 
@@ -158,7 +164,15 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numL
             }
 
             // Apply color to the row if it has some style
-            if (cache[i].lineColor != COLOR_NONE) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[cache[i].lineColor]));
+            if (cache[i].lineColor != COLOR_NONE) {
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[cache[i].lineColor]));
+
+                // Scroll to that row once per cycle
+                if (!scrolledCache[id]) {
+                    ImGui::SetScrollHereY(0.5f);
+                    scrolledCache[id] = true;
+                }
+            }
         }
 
         ImGui::EndTable();
@@ -180,18 +194,21 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 
     // Start the window disabling collapse
-    ImGui::Begin("Instruction Window", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Instruction Window", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
 
     // Buttons
     if (ImGui::Button("Single Step")) {
+        resetScroll();
         sim->singleStep();
     }
     ImGui::SameLine();
     if (ImGui::Button("Step All")) {
+        resetScroll();
         sim->stepAll(true);
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
+        resetScroll();
         sim->reset();
     }
 
@@ -203,7 +220,7 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::Separator();
 
     // Operation table
-    if (ImGui::BeginTable("Operations", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
+    if (ImGui::BeginTable("Operations", 5, ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupColumn("B");
         ImGui::TableSetupColumn("Op");
         ImGui::TableSetupColumn("Type");
@@ -220,6 +237,12 @@ void GUI::renderInstructionWindow(Simulator* sim) {
             if (cycle != 0 && cycle == i) {
                 ImU32 rowColor = ImGui::GetColorU32(colorVec[COLOR_EXECUTE]);
                 ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, rowColor);
+
+                // Scroll to that row once per cycle
+                if (!scrolledInstructions) {
+                    ImGui::SetScrollHereY(0.5f);
+                    scrolledInstructions = true;
+                }
             }
 
             // Draw the table
@@ -257,7 +280,7 @@ void GUI::renderStatsWindow(Simulator* sim) {
     
     for (int i = 0; i < sim->getNumCaches(); i++) {
         Cache* cache = sim ->getCache(i);
-        ImGui::Text("Cache L%d:", i + 1);
+        ImGui::Text("\nCache L%d:", i + 1);
         ImGui::Text("\tTotal accesses: %d", cache->getAccesses());
         ImGui::Text("\tHits: %d", cache->getHits());
         ImGui::Text("\tMisses: %d", cache->getMisses());
@@ -265,7 +288,7 @@ void GUI::renderStatsWindow(Simulator* sim) {
         cycle != 0 ? ImGui::Text("\tMiss rate: %.1f%%", cache->getMisses() / (double) cycle * 100) : ImGui::Text("\tMiss rate: ");
     }
 
-    ImGui::Text("Memory:");
+    ImGui::Text("\nMemory:");
     ImGui::Text("\tTotal accesses: %ld", sim->getMemory()->getAccessesBurst() + sim->getMemory()->getAccessesSingle());
     ImGui::Text("\tFirst word accesses: %ld", sim->getMemory()->getAccessesSingle());
     ImGui::Text("\tBurst accesses: %ld", sim->getMemory()->getAccessesBurst());
@@ -323,11 +346,11 @@ void GUI::renderCacheWindow(Simulator* sim) {
 
                 // Draw the content of the caches inside of the talbe
                 if (cache->isCacheSplit()) {
-                    drawCacheTable(cache->getCache(true), cache->getLineSizeWords(),cache->getLines(), (char*) "Instructions");
+                    drawCacheTable(cache->getCache(true), i, cache->getLineSizeWords(),cache->getLines(), (char*) "Instructions");
                     ImGui::Separator(); // Visual separator line
-                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
+                    drawCacheTable(cache->getCache(), i, cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
                 } else {
-                    drawCacheTable(cache->getCache(), cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
+                    drawCacheTable(cache->getCache(), i, cache->getLineSizeWords(), cache->getLines(), (char*) "Data");
                 }
 
                 ImGui::EndChild();
@@ -368,13 +391,32 @@ void GUI::renderMemoryWindow(Simulator* sim) {
             ImGui::TableSetColumnIndex(1); ImGui::Text("%d", memory[i].content);
 
             // Apply color to the row if it has some style
-            if (memory[i].lineColor != COLOR_NONE) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[memory[i].lineColor]));
+            if (memory[i].lineColor != COLOR_NONE) {
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(colorVec[memory[i].lineColor]));
+
+                // Scroll to that row once per cycle
+                if (!scrolledMemory) {
+                    ImGui::SetScrollHereY(0.5f);
+                    scrolledMemory = true;
+                }
+            }
         }
 
         ImGui::EndTable();
     }
 
     ImGui::End();
+}
+
+/**
+ * Resets the scroll variables.
+ */
+void GUI::resetScroll() {
+    scrolledInstructions = false;
+    scrolledMemory = false;
+    for (int i = 0; i < MAX_CACHE_LEVELS; i++) {
+        scrolledCache[i] = false;
+    }
 }
 
 /**
