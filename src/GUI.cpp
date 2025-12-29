@@ -119,7 +119,7 @@ void GUI::drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, u
     ImGui::Text("%s\n", label);
 
     // Display the instruction cache 
-    if (ImGui::BeginTable(label, 9, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
+    if (ImGui::BeginTable(label, 10, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
         ImGui::TableSetupColumn("L");
         ImGui::TableSetupColumn("S");
         ImGui::TableSetupColumn("W");
@@ -128,6 +128,7 @@ void GUI::drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, u
         ImGui::TableSetupColumn("1st Acc");
         ImGui::TableSetupColumn("Last Acc");
         ImGui::TableSetupColumn("# Acc");
+        ImGui::TableSetupColumn("Tag");
         ImGui::TableSetupColumn("Content");
         ImGui::TableHeadersRow();
 
@@ -141,7 +142,8 @@ void GUI::drawCacheTable(CacheLine* cache, uint8_t id, uint32_t lineSizeWords, u
             ImGui::TableSetColumnIndex(5); (cache[i].firstAccess == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].firstAccess);
             ImGui::TableSetColumnIndex(6); (cache[i].lastAccess == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].lastAccess);
             ImGui::TableSetColumnIndex(7); (cache[i].numberAccesses == -1) ? ImGui::Text("-") : ImGui::Text("%u", cache[i].numberAccesses);
-            ImGui::TableSetColumnIndex(8);
+            ImGui::TableSetColumnIndex(8); (!cache[i].valid) ? ImGui::Text("-") : ImGui::Text("0x%lX", cache[i].tag);
+            ImGui::TableSetColumnIndex(9);
 
             for (int j = 0; j < lineSizeWords; j++) {
                 ImGui::Text("%lu ", cache[i].content[j]);
