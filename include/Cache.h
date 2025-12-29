@@ -13,7 +13,8 @@
 // A cache line
 typedef struct {
     uint64_t* content;              // Pointer to an array of words
-    uint32_t tag, set, way;
+    uint64_t tag;
+    uint32_t set, way;
     int32_t firstAccess, lastAccess, numberAccesses;
     bool valid, dirty;
     ColorNames lineColor;

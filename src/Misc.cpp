@@ -29,6 +29,7 @@ long parseLong(const char* string, bool base2) {
     if (string == NULL) {
         return -2;
     }
+
     // Obtain the multiplier K, M, or G by checking for the last character in the string
     long len = strlen(string);
 
@@ -60,11 +61,6 @@ long parseLong(const char* string, bool base2) {
         if (string[i] > '9' || string[i] < '0') {
             return -1;
         }
-    }
-
-    // If there is only a single character, return the multiplier ?
-    if (len == 1) {
-         return multiplier;
     }
 
     return atoi(string) * multiplier;
