@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
 
             sim = new Simulator(&sc, ops); 
             sim->stepAll(false);
+            sim->printStatistics();
         } else {
             fprintf(stderr, "Error: Check the configuration and trace argument paths are correct\n");
         }

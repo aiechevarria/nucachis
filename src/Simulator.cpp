@@ -197,5 +197,29 @@ void Simulator::clearAllStyles() {
     for (int i = 0; i < cacheLevels; i++) {
         caches[i]->clearStyle();
     }
+}
 
+/**
+ * Prints the current execution statistics to stdout.
+ */
+void Simulator::printStatistics() {
+    printf("\n\n------ Statistics ------\n\n");
+    printf("CPU:\n");
+    printf("\tTotal access time (s): %.4f\n", totalAccessTime);
+    printf("\tAverage memory access time (s): %.4f\n", totalAccessTime / (double) cycle);
+    
+    for (int i = 0; i < cacheLevels; i++) {
+        Cache* cache = getCache(i);
+        printf("\nCache L%d:\n", i + 1);
+        printf("\tTotal accesses: %d\n", cache->getAccesses());
+        printf("\tHits: %d\n", cache->getHits());
+        printf("\tMisses: %d \n", cache->getMisses());
+        printf("\tHit rate: %.1f%%\n", cache->getHits() / (double) cycle * 100);
+        printf("\tMiss rate: %.1f%%\n", cache->getMisses() / (double) cycle * 100);
+    }
+
+    printf("\nMemory:\n");
+    printf("\tTotal accesses: %ld\n", memory->getAccessesBurst() + memory->getAccessesSingle());
+    printf("\tFirst word accesses: %ld\n", memory->getAccessesSingle());
+    printf("\tBurst accesses: %ld\n", memory->getAccessesBurst());
 }

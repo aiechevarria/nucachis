@@ -48,4 +48,5 @@ public:
     double getTotalAccessTime();
 
     void clearAllStyles();
+    void printStatistics();
 };
