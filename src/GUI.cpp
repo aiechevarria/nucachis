@@ -49,6 +49,8 @@ GUI::GUI () {
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromMemoryCompressedBase85TTF(robottoFont_compressed_data_base85, 20.0f);
 }
 
 GUI::~GUI () {

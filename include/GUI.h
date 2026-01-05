@@ -8,6 +8,7 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "ImGuiFileDialog.h"
+#include "Font.h"
 #include "Misc.h"
 #include "Simulator.h"
 #include "MainMemory.h"
