@@ -15,8 +15,8 @@
 
 // Proportions and placement of each window respective to the workspace
 // Picker window
-#define PICKER_WINDOW_WIDTH  0.50
-#define PICKER_WINDOW_HEIGHT 0.45
+#define PICKER_WINDOW_WIDTH  0.55
+#define PICKER_WINDOW_HEIGHT 0.55
 
 // Instruction window
 #define INSTR_WINDOW_WIDTH  0.25
@@ -29,7 +29,7 @@
 // Cache window
 #define CACHE_WINDOW_WIDTH  (1 - (INSTR_WINDOW_WIDTH + MEM_WINDOW_WIDTH))   // Take up all the free remaining space
 #define CACHE_WINDOW_HEIGHT 1
-#define MIN_CACHE_TABLE_WIDTH 300.0f
+#define MIN_CACHE_TABLE_WIDTH 450.0f
 
 // Stats window
 #define STATS_WINDOW_WIDTH  INSTR_WINDOW_WIDTH
