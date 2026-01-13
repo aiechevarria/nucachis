@@ -2,10 +2,10 @@
 #include "Logo.cpp"
 
 ImVec4 colorVec[NUM_COLOR_NAMES] = {
-    ImVec4(0.03f, 1.0f, 0.5f, 1.0f),    // COLOR_HIT
+    ImVec4(0.02f, 0.75f, 0.35f, 1.0f),  // COLOR_HIT
     ImVec4(0.9f, 0.05f, 0.25f, 1.0f),   // COLOR_MISS
     ImVec4(0.05f, 0.5f, 1.0f, 1.0f),    // COLOR_LOAD_FIRST
-    ImVec4(0.05f, 0.8f, 1.0f, 1.0f),     // COLOR_LOAD_BURST
+    ImVec4(0.05f, 0.8f, 1.0f, 1.0f),    // COLOR_LOAD_BURST
     ImVec4(1.0f, 0.65f, 0.0f, 1.0f),    // COLOR_WRITE_FIRST
     ImVec4(1.0f, 0.8f, 0.0f, 1.0f),     // COLOR_WRITE_BURST
     ImVec4(0.5f, 0.5f, 0.5f, 1.0f),     // COLOR_EXECUTE
